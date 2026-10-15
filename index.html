@@ -331,6 +331,10 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 .fdetails summary { cursor: pointer; font-size: 0.88rem; font-weight: 600; }
 .fdetails[open] summary { margin-bottom: 10px; }
 .fdetails .list li { font-size: 0.86rem; }
+.kpi-word { font-size: 1.5rem; }
+.pscale { display: flex; gap: 4px; }
+.pscale i { flex: 1; height: 6px; border-radius: 3px; background: var(--sunken); }
+.pscale i.on { background: var(--fam); }
 
 </style>
 </head>
@@ -585,7 +589,7 @@ window.FACTEURS = [
     jpm: "7,7 %" }
 ];
 
-window.SOURCES_FACTEURS = "Hypothèses J.P. Morgan Asset Management, 2026 Long-Term Capital Market Assumptions : rendements composés annuels attendus des facteurs sur les actions américaines, en dollars. Comportements en crise : indices MSCI World de style, ordres de grandeur.";
+window.SOURCES_FACTEURS = "Comportements en crise : indices MSCI World de style, ordres de grandeur, décrits qualitativement.";
 
 window.SOURCES = [
   { t: "Amundi Investment Institute, Capital Market Assumptions, mise à jour H2 2026", u: "https://research-center.amundi.com/files/nuxeo/dl/6df1bf9d-44de-412e-aa5c-4578e393e8b0" },
@@ -1103,7 +1107,7 @@ window.TEXTES.OLAT = {
   meilleur: "Votre moment, c'est la décennie 2010. Les entreprises de qualité, rentables et en croissance, ont surperformé presque chaque année. Ceux qui ont acheté les grands leaders mondiaux en 2010 et les ont gardés ont vu leur capital multiplié plusieurs fois, sans avoir pris une seule décision difficile.",
   pire: "Votre épreuve, c'est 2022. La hausse brutale des taux a comprimé les valorisations des entreprises de croissance : des sociétés dont les bénéfices progressaient encore ont perdu 30 % à 50 % en bourse. Rien n'avait changé dans leur qualité ; seul le prix que le marché acceptait de payer pour leurs bénéfices futurs avait baissé. Vous avez découvert que la qualité ne protège pas d'avoir payé trop cher.",
   regard: "On vous trouve confiant, cohérent, peu nerveux. Vos proches envient votre sérénité pendant les crises. En comité, vous défendez le long terme contre les tentations tactiques, et vous rappelez que les meilleures entreprises se paient rarement bon marché.",
-  actifsPourquoi: "L'allocation type de votre profil part de la règle que Warren Buffett a fixée pour sa propre famille dans sa lettre aux actionnaires de 2013 : 90 % dans un fonds indiciel d'actions à bas coût, 10 % en obligations d'État courtes. Vous y ajoutez votre touche : une poche actions inclinée vers la qualité, des marchés émergents, et 10 % de capital-investissement pour l'horizon long. C'est l'une des deux allocations au rendement attendu le plus élevé, avec le Visionnaire, et les pertes de crise sont à la hauteur.",
+  actifsPourquoi: "L'allocation type de votre profil part de la règle que Warren Buffett a fixée pour sa propre famille dans sa lettre aux actionnaires de 2013 : 90 % dans un fonds indiciel d'actions à bas coût, 10 % en obligations d'État courtes. Vous y ajoutez votre touche : une poche actions inclinée vers la qualité, des marchés émergents, et 10 % de capital-investissement pour l'horizon long. C'est l'une des deux allocations au potentiel de long terme le plus élevé, avec le Visionnaire, et les pertes de crise sont à la hauteur.",
   pertes: "Votre piège est de payer la qualité trop cher. Dans les années 1970, les « Nifty Fifty », cinquante grandes valeurs américaines jugées incontournables, ont perdu plus de la moitié de leur valeur en deux ans, alors que la plupart sont restées d'excellentes entreprises. Le second piège est la concentration : à force de détenir les mêmes leaders que tout le monde, votre portefeuille dépend de quelques titres et d'un seul facteur.",
   gardeFouTexte: "Plafonnez votre premier secteur à 30 % du portefeuille et votre premier titre à 8 %. Fixez pour chaque entreprise un prix au-delà duquel vous ne renforcez plus. Vous garderez vos meilleures convictions, sans laisser la valorisation décider de votre risque.",
   ressemblent: "Warren Buffett dans sa période de maturité, convaincu par Charlie Munger qu'il vaut mieux acheter une entreprise formidable à un prix correct qu'une entreprise correcte à un prix formidable. Philip Fisher, pionnier de l'investissement de croissance. Et Terry Smith, dont la devise tient en trois verbes : acheter de bonnes entreprises, ne pas les payer trop cher, ne rien faire.",
@@ -1559,6 +1563,8 @@ window.TEXTES.OCIT = {
       liq: 100 - window.ILLIQUIDES.reduce((t, k) => t + alloc[k], 0)
     };
   }
+  const NIVEAUX = [[4.5, "Faible"], [5.2, "Modéré"], [6.2, "Intermédiaire"], [7.2, "Élevé"], [99, "Très élevé"]];
+  const niveau = r => { const i = NIVEAUX.findIndex(x => r < x[0]); return { n: i + 1, mot: NIVEAUX[i][1] }; };
   const fmt = (x, d) => (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x).toFixed(d || 0).replace(".", ",");
   const darkText = hex => { const n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 150; };
 
@@ -1653,7 +1659,7 @@ window.TEXTES.OCIT = {
       <div class="model"><span class="eyebrow">Portefeuille de référence</span><strong>${p.modele.nom}</strong><span class="muted">${p.modele.desc}</span></div>
 
       <div class="kpis">
-        <div><span class="eyebrow">Rendement attendu</span><span class="kpi">${fmt(st.ret, 1)} %</span><span class="muted">hypothèse par an sur 10 ans, hors crypto-actifs, non garantie<br>60/40 : ${fmt(rs.ret, 1)} %</span></div>
+        <div><span class="eyebrow">Potentiel et risque</span><span class="kpi kpi-word">${niveau(st.ret).mot}</span><span class="pscale" aria-hidden="true">${[1, 2, 3, 4, 5].map(k => `<i class="${k <= niveau(st.ret).n ? "on" : ""}"></i>`).join("")}</span><span class="muted">appréciation qualitative de long terme<br>60/40 : ${niveau(rs.ret).mot.toLowerCase()}</span></div>
         <div><span class="eyebrow">Actions</span><span class="kpi">${st.actions} %</span><span class="muted">du portefeuille<br>60/40 : ${rs.actions} %</span></div>
         <div><span class="eyebrow">Pire crise estimée</span><span class="kpi">${fmt(Math.min(...st.crises))} %</span><span class="muted">sur les trois épisodes<br>60/40 : ${fmt(Math.min(...rs.crises))} %</span></div>
         <div><span class="eyebrow">Liquidité</span><span class="kpi">${st.liq} %</span><span class="muted">mobilisable en moins d'un mois · <span class="liq ${st.liq >= 90 ? "good" : st.liq >= 70 ? "info" : "warn"}">${st.liq >= 90 ? "élevée" : st.liq >= 70 ? "moyenne" : "faible"}</span><br>60/40 : ${rs.liq} %</span></div>
@@ -1678,7 +1684,7 @@ window.TEXTES.OCIT = {
       <div class="grid2" style="margin-top:20px">
         <div class="panel"><h3>Les actifs préférés de ce profil</h3><div class="chips">${p.actifs.map(a => `<span>${a}</span>`).join("")}</div></div>
         <div class="panel"><div class="callout"><span class="eyebrow">Garde-fou en une ligne</span><p>${p.gardeFou}</p></div>
-          <p class="muted small">Les rendements attendus sont des hypothèses issues de publications de sociétés de gestion et d'estimations ; les pertes en crise sont des estimations historiques arrondies. Les performances passées ne préjugent pas des performances futures. Tout investissement comporte un risque de perte en capital.</p></div>
+          <p class="muted small">Le potentiel et risque est une appréciation qualitative, sans prévision chiffrée ; les pertes en crise sont des estimations historiques arrondies. Les performances passées ne préjugent pas des performances futures. Tout investissement comporte un risque de perte en capital.</p></div>
       </div>
     </section>`;
   }
@@ -1833,14 +1839,14 @@ window.TEXTES.OCIT = {
       <section style="margin-top:48px"><h2>Les fondements</h2>
         <p class="prose muted" style="margin-top:12px">Théorie des perspectives et aversion aux pertes (Kahneman et Tversky, 1979) ; typologies d'investisseurs de Bailard, Biehl et Kaiser (1986) et de Pompian ; échelle de tolérance au risque de Grable et Lytton (1999) ; choix de loteries de Holt et Laury (2002) ; test de réflexion cognitive de Frederick (2005). Les liens entre biais et comportements s'appuient sur les travaux de Shefrin et Statman (1985), Barber et Odean (2000), Huberman (2001) et Kumar (2009).</p></section>
       <section style="margin-top:48px"><h2>Les allocations d'actifs</h2>
-        <p class="prose muted" style="margin-top:12px">Chaque profil reçoit une allocation naturelle sur quinze classes d'actifs, construite par écart à un portefeuille de référence documenté (Graham, Bogle, Browne, Dalio, Swensen, Buffett, Taleb, Faber…), et une inclinaison factorielle de sa poche actions. Les rendements attendus à dix ans proviennent des hypothèses de marché publiées par Amundi (mise à jour du second semestre 2026) et J.P. Morgan (2026), complétées d'estimations signalées comme telles. Les performances en crise sont des ordres de grandeur en euros, calculés classe par classe pour 2008, le krach de février-mars 2020 et 2022. Pour l'immobilier non coté et le non coté financier, ce sont des pertes « économiques » : les valeurs publiées (SCPI, fonds non cotés) baissent moins et plus tard, car elles reposent sur des expertises périodiques. L'immobilier coté (foncières) se comporte comme des actions ; il n'est presque pas utilisé dans les allocations. L'indicateur de liquidité mesure la part du portefeuille mobilisable en moins d'un mois : élevée au-delà de 90 %, moyenne entre 70 % et 90 %, faible en dessous.</p>
-        <div class="table-wrap" style="margin-top:16px"><table class="mtable"><thead><tr><th>Classe d'actifs</th><th>Rendement attendu</th><th>Source</th><th>2008</th><th>Krach 2020</th><th>2022</th><th>Liquidité</th></tr></thead><tbody>
-          ${CL.map(c => `<tr><td>${c.nom}</td><td class="mono">${c.r === null ? "–" : c.r.toFixed(1).replace(".", ",") + " %"}</td><td>${c.rs}</td>${c.c.map(x => `<td class="mono">${fmt(x)} %</td>`).join("")}<td>${window.ILLIQUIDES.includes(c.id) ? "plus d'un mois" : "moins d'un mois"}</td></tr>`).join("")}
+        <p class="prose muted" style="margin-top:12px">Chaque profil reçoit une allocation naturelle sur quinze classes d'actifs, construite par écart à un portefeuille de référence documenté (Graham, Bogle, Browne, Dalio, Swensen, Buffett, Taleb, Faber…), et une inclinaison factorielle de sa poche actions. L'appréciation qualitative « potentiel et risque », sur une échelle de cinq niveaux, s'appuie sur les hypothèses de long terme publiées par Amundi (mise à jour du second semestre 2026) et J.P. Morgan (2026). Aucun rendement chiffré n'est affiché : ces hypothèses ne sont pas des prévisions. Les performances en crise sont des ordres de grandeur en euros, calculés classe par classe pour 2008, le krach de février-mars 2020 et 2022. Pour l'immobilier non coté et le non coté financier, ce sont des pertes « économiques » : les valeurs publiées (SCPI, fonds non cotés) baissent moins et plus tard, car elles reposent sur des expertises périodiques. L'immobilier coté (foncières) se comporte comme des actions ; il n'est presque pas utilisé dans les allocations. L'indicateur de liquidité mesure la part du portefeuille mobilisable en moins d'un mois : élevée au-delà de 90 %, moyenne entre 70 % et 90 %, faible en dessous.</p>
+        <div class="table-wrap" style="margin-top:16px"><table class="mtable"><thead><tr><th>Classe d'actifs</th><th>2008</th><th>Krach 2020</th><th>2022</th><th>Liquidité</th></tr></thead><tbody>
+          ${CL.map(c => `<tr><td>${c.nom}</td>${c.c.map(x => `<td class="mono">${fmt(x)} %</td>`).join("")}<td>${window.ILLIQUIDES.includes(c.id) ? "plus d'un mois" : "moins d'un mois"}</td></tr>`).join("")}
         </tbody></table></div></section>
       <section style="margin-top:48px"><h2>Les facteurs de style</h2>
         <p class="prose muted" style="margin-top:12px">La poche actions de chaque profil est inclinée vers des facteurs de style documentés par la recherche académique. Value et croissance forment un seul axe, puisqu'il s'agit des deux côtés d'une même mesure. Chaque inclinaison va de −2 à +2 par rapport à un indice mondial pondéré par les capitalisations.</p>
-        <div class="table-wrap" style="margin-top:16px"><table class="mtable"><thead><tr><th>Facteur</th><th>Ce qu'il mesure</th><th>Fondement académique</th><th>Comportement en crise</th><th>Hypothèse J.P. Morgan 2026</th></tr></thead><tbody>
-          ${FA.map(f => `<tr><td><strong>${f.nom}</strong></td><td>${f.def}</td><td>${f.recherche}</td><td>${f.crises}</td><td class="mono">${f.jpm}</td></tr>`).join("")}
+        <div class="table-wrap" style="margin-top:16px"><table class="mtable"><thead><tr><th>Facteur</th><th>Ce qu'il mesure</th><th>Fondement académique</th><th>Comportement en crise</th></tr></thead><tbody>
+          ${FA.map(f => `<tr><td><strong>${f.nom}</strong></td><td>${f.def}</td><td>${f.recherche}</td><td>${f.crises}</td></tr>`).join("")}
         </tbody></table></div>
         <p class="muted small" style="margin-top:8px">${window.SOURCES_FACTEURS}</p></section>
       <section style="margin-top:48px"><h2>Sources</h2>
@@ -1865,7 +1871,7 @@ window.TEXTES.OCIT = {
         <h2>3. Ce n'est pas un questionnaire réglementaire</h2>
         <p>Ce test ne remplace pas l'évaluation de l'adéquation ou du caractère approprié que tout prestataire de services d'investissement ou conseiller doit réaliser avant de vous recommander ou de vous vendre un produit, en application de la directive MIF 2.</p>
         <h2>4. Chiffres et hypothèses</h2>
-        <p>Les rendements attendus sont des hypothèses de long terme issues de publications de sociétés de gestion (Amundi, J.P. Morgan Asset Management) et d'estimations signalées comme telles. Ils ne sont ni garantis, ni des prévisions. Les performances en période de crise sont des estimations historiques arrondies, calculées par classe d'actifs. Les performances passées ne préjugent pas des performances futures.</p>
+        <p>Investype n'affiche aucun rendement chiffré. L'appréciation « potentiel et risque » est qualitative ; elle s'appuie sur des hypothèses de long terme publiées par des sociétés de gestion (Amundi, J.P. Morgan Asset Management), qui ne sont ni des garanties, ni des prévisions. Les performances en période de crise sont des estimations historiques arrondies, calculées par classe d'actifs. Les performances passées ne préjugent pas des performances futures.</p>
         <p>Tout investissement comporte un risque de perte en capital. Les actifs non cotés et l'immobilier non coté sont peu liquides et peuvent être difficiles à revendre. Les crypto-actifs sont très volatils et exposent à un risque de perte totale.</p>
         <h2>5. Avant toute décision</h2>
         <p>Avant toute décision d'investissement, adressez-vous à un professionnel habilité : établissement agréé, ou conseiller en investissements financiers immatriculé à l'ORIAS. Vous pouvez vérifier l'autorisation d'un intermédiaire sur le registre de l'ORIAS et consulter les listes noires publiées par l'Autorité des marchés financiers.</p>
