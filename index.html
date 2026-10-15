@@ -9,7 +9,302 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650;12..96,700&family=Figtree:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="assets/style.css">
+<style>
+/* Profils d'investisseurs — feuille de style
+   Mise en page : une colonne éditoriale de 1080 px max ; le test en plein écran centré ;
+   le résultat comme une fiche de fonds (en-tête de profil, jauges, allocation). */
+:root {
+  --paper: #f3f5f6;
+  --surface: #ffffff;
+  --sunken: #e8ecef;
+  --ink: #132029;
+  --muted: #566573;
+  --line: #d6dde2;
+  --cta: #132029;
+  --cta-ink: #ffffff;
+  --pat: #2b7a66;   /* Patrimoniaux */
+  --tac: #2f63a6;   /* Tacticiens */
+  --con: #6a55a8;   /* Conquérants */
+  --opp: #c27c12;   /* Opportunistes */
+  --good: #2b7a66;
+  --warn: #b26a00;
+  --ref: #9aa7b1;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e151b; --surface: #16212a; --sunken: #1c2933; --ink: #e5ebef; --muted: #96a5b1;
+    --line: #2a3843; --cta: #e5ebef; --cta-ink: #0e151b;
+    --pat: #4fb39a; --tac: #6a9be0; --con: #9d8be0; --opp: #e7a541; --good: #4fb39a; --warn: #e7a541; --ref: #5d6c78;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e151b; --surface: #16212a; --sunken: #1c2933; --ink: #e5ebef; --muted: #96a5b1;
+  --line: #2a3843; --cta: #e5ebef; --cta-ink: #0e151b;
+  --pat: #4fb39a; --tac: #6a9be0; --con: #9d8be0; --opp: #e7a541; --good: #4fb39a; --warn: #e7a541; --ref: #5d6c78;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { background: var(--paper); }
+body {
+  margin: 0; color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.12; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2.2rem, 5.5vw, 3.6rem); font-weight: 700; }
+h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; }
+h3 { font-size: 1.15rem; font-weight: 650; }
+p { margin: 0; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--tac); outline-offset: 3px; border-radius: 6px; }
+.mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.eyebrow { font-family: var(--font-data); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+.wrap { max-width: 1080px; margin: 0 auto; }
+.prose { max-width: 66ch; }
+
+/* En-tête */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding-inline: max(16px, env(safe-area-inset-left, 0px)); }
+.top .wrap { display: flex; align-items: center; gap: 20px; padding-block: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; }
+.brand-mark { display: grid; grid-template-columns: repeat(2, 9px); gap: 3px; }
+.brand-mark i { width: 9px; height: 9px; border-radius: 2px; }
+.nav { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; }
+.nav a { text-decoration: none; padding: 6px 12px; border-radius: 999px; font-size: 0.92rem; color: var(--muted); }
+.nav a:hover { color: var(--ink); background: var(--sunken); }
+.nav a[aria-current="page"] { color: var(--ink); background: var(--sunken); font-weight: 600; }
+
+main { padding-block: 40px 72px; }
+section + section { margin-top: 72px; }
+
+/* Boutons */
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 22px; border-radius: 999px; border: 1px solid var(--cta); background: var(--cta); color: var(--cta-ink); font-weight: 600; text-decoration: none; cursor: pointer; transition: transform .15s ease; }
+.btn:hover { transform: translateY(-1px); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn.ghost:hover { border-color: var(--ink); }
+.btn .meta { font-family: var(--font-data); font-size: 0.75rem; opacity: 0.75; font-weight: 400; }
+
+/* Accueil */
+.hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 48px; align-items: center; }
+.hero-text { display: grid; gap: 22px; min-width: 0; }
+.hero-text .lead { font-size: 1.15rem; color: var(--muted); max-width: 52ch; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.matrix { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.matrix a { display: grid; place-items: center; gap: 4px; padding: 10px 4px 8px; border-radius: 12px; text-decoration: none; background: var(--surface); border: 1px solid var(--line); transition: transform .2s ease, border-color .2s ease; }
+.matrix a:hover { transform: translateY(-3px); border-color: var(--ink); }
+.matrix .code { font-family: var(--font-data); font-size: 0.72rem; letter-spacing: 0.08em; color: var(--muted); }
+.matrix svg { width: 100%; max-width: 72px; height: auto; }
+.matrix-legend { display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; color: var(--muted); font-family: var(--font-data); }
+
+.axes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 24px; }
+.axis-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; display: grid; gap: 10px; align-content: start; }
+.axis-poles { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 600; }
+.axis-poles .l { font-family: var(--font-data); font-size: 1.3rem; }
+.axis-poles .rule { flex: 1; height: 2px; background: linear-gradient(90deg, var(--line), var(--ink), var(--line)); border-radius: 2px; }
+.axis-card p { font-size: 0.93rem; color: var(--muted); }
+
+.families { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 24px; }
+.family { border-radius: var(--r); padding: 20px; display: grid; gap: 8px; align-content: start; background: color-mix(in srgb, var(--fam) 10%, var(--surface)); border: 1px solid color-mix(in srgb, var(--fam) 35%, var(--line)); }
+.family .tag { font-family: var(--font-data); font-size: 0.8rem; color: var(--fam); font-weight: 600; letter-spacing: 0.06em; }
+.family p { font-size: 0.93rem; color: var(--muted); }
+
+.formats { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0; margin-top: 24px; border-top: 1px solid var(--line); }
+.formats > div { padding: 18px 20px 18px 0; border-bottom: 1px solid var(--line); display: grid; gap: 6px; align-content: start; }
+.formats p { font-size: 0.93rem; color: var(--muted); }
+.sec-head { display: grid; gap: 10px; max-width: 66ch; }
+
+/* Test */
+.test { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+.progress { display: grid; gap: 8px; }
+.progress-bar { height: 6px; background: var(--sunken); border-radius: 6px; overflow: hidden; }
+.progress-bar > i { display: block; height: 100%; background: var(--ink); border-radius: 6px; transition: width .3s ease; }
+.progress-meta { display: flex; justify-content: space-between; gap: 12px; font-family: var(--font-data); font-size: 0.8rem; color: var(--muted); }
+.qcard { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: clamp(22px, 4vw, 40px); display: grid; gap: 24px; }
+.qtag { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--sunken); font-size: 0.78rem; font-family: var(--font-data); color: var(--muted); }
+.chip.date { background: color-mix(in srgb, var(--opp) 16%, var(--surface)); color: var(--ink); }
+.qtext { font-family: var(--font-display); font-size: clamp(1.25rem, 2.6vw, 1.6rem); font-weight: 600; line-height: 1.3; text-wrap: pretty; }
+.likert { display: grid; gap: 14px; }
+.likert-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.likert-end { font-size: 0.85rem; font-weight: 600; width: 92px; flex-shrink: 0; }
+.likert-end.r { text-align: right; }
+.likert-dots { display: flex; align-items: center; justify-content: center; gap: clamp(8px, 2.5vw, 22px); flex: 1; }
+.dot { border-radius: 50%; border: 2px solid var(--muted); background: transparent; cursor: pointer; padding: 0; transition: transform .15s ease, background .15s ease; }
+.dot:hover { transform: scale(1.08); }
+.dot[data-v="1"], .dot[data-v="5"] { width: 50px; height: 50px; }
+.dot[data-v="2"], .dot[data-v="4"] { width: 40px; height: 40px; }
+.dot[data-v="3"] { width: 30px; height: 30px; }
+.dot[data-v="1"], .dot[data-v="2"] { border-color: var(--tac); }
+.dot[data-v="4"], .dot[data-v="5"] { border-color: var(--opp); }
+.dot[aria-pressed="true"][data-v="1"], .dot[aria-pressed="true"][data-v="2"] { background: var(--tac); }
+.dot[aria-pressed="true"][data-v="3"] { background: var(--muted); }
+.dot[aria-pressed="true"][data-v="4"], .dot[aria-pressed="true"][data-v="5"] { background: var(--opp); }
+.likert-labels { display: none; justify-content: space-between; font-size: 0.8rem; font-weight: 600; }
+.options { display: grid; gap: 10px; }
+.opt { display: flex; align-items: center; gap: 14px; text-align: left; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--paper); cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+.opt:hover { border-color: var(--ink); }
+.opt .k { font-family: var(--font-data); font-size: 0.8rem; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: var(--sunken); flex-shrink: 0; }
+.opt[aria-pressed="true"] { border-color: var(--ink); background: var(--sunken); }
+.opt[aria-pressed="true"] .k { background: var(--ink); color: var(--paper); }
+.opt.neutral { border-style: dashed; color: var(--muted); }
+.test-nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.linkbtn { background: none; border: none; color: var(--muted); cursor: pointer; padding: 8px 0; font-size: 0.92rem; text-decoration: underline; text-underline-offset: 3px; }
+.linkbtn:hover { color: var(--ink); }
+.linkbtn:disabled { opacity: 0.35; cursor: default; }
+.kbd-hint { font-size: 0.8rem; color: var(--muted); }
+
+/* Résultat et fiche */
+.pcard { --fam: var(--ink); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 28px; align-items: center; padding: clamp(22px, 4vw, 36px); border-radius: 22px; background: color-mix(in srgb, var(--fam) 9%, var(--surface)); border: 1px solid color-mix(in srgb, var(--fam) 35%, var(--line)); }
+.pcard svg.emblem { width: clamp(110px, 18vw, 160px); height: auto; }
+.pcard .code-big { font-family: var(--font-data); font-size: clamp(1.5rem, 4vw, 2.1rem); letter-spacing: 0.08em; color: var(--fam); font-weight: 600; }
+.pcard .devise { font-family: var(--font-display); font-size: 1.1rem; font-style: italic; color: var(--muted); margin-top: 8px; }
+.pcard .fam-label { font-size: 0.9rem; margin-top: 10px; }
+.pcard-text { display: grid; gap: 4px; min-width: 0; }
+
+.grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 22px; display: grid; gap: 16px; align-content: start; min-width: 0; }
+.panel h3 { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+
+.gauge { display: grid; gap: 6px; }
+.gauge-head { display: flex; justify-content: space-between; gap: 8px; font-size: 0.88rem; }
+.gauge-head .win { font-weight: 700; }
+.gauge-track { position: relative; height: 12px; border-radius: 6px; background: var(--sunken); }
+.gauge-fill { position: absolute; top: 0; bottom: 0; border-radius: 6px; }
+.gauge-mid { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--muted); opacity: .5; }
+.gauge-tick { position: absolute; top: -5px; width: 2px; height: 22px; background: var(--ink); border-radius: 1px; }
+.gauge-tick.decl { background: transparent; border-left: 2px dashed var(--ink); width: 0; }
+.gauge-foot { display: flex; justify-content: space-between; font-family: var(--font-data); font-size: 0.72rem; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.8rem; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 0; border-top: 2px solid var(--ink); vertical-align: middle; margin-right: 6px; }
+.legend i.d { border-top-style: dashed; }
+
+.signals { display: grid; gap: 10px; }
+.signal { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; padding: 12px 14px; border-radius: 12px; background: var(--sunken); font-size: 0.93rem; }
+.signal .pill { font-family: var(--font-data); font-size: 0.72rem; padding: 3px 8px; border-radius: 999px; white-space: nowrap; font-weight: 600; }
+.pill.good { background: color-mix(in srgb, var(--good) 20%, transparent); color: var(--good); }
+.pill.warn { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
+.pill.info { background: color-mix(in srgb, var(--tac) 18%, transparent); color: var(--tac); }
+
+.list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.list li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; font-size: 0.95rem; }
+.list li::before { content: ""; width: 8px; height: 8px; border-radius: 2px; margin-top: 8px; background: var(--fam, var(--ink)); }
+.list.minus li::before { background: transparent; border: 2px solid var(--warn); width: 8px; height: 8px; border-radius: 50%; }
+
+.alloc-bar { display: flex; height: 34px; border-radius: 10px; overflow: hidden; gap: 2px; }
+.alloc-bar > span { display: grid; place-items: center; font-family: var(--font-data); font-size: 0.72rem; color: #fff; min-width: 0; overflow: hidden; }
+.alloc-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.alloc-table th { text-align: left; font-weight: 500; color: var(--muted); font-size: 0.78rem; padding: 0 0 8px; }
+.alloc-table td { padding: 7px 0; border-top: 1px solid var(--line); vertical-align: middle; }
+.alloc-table td.n { width: 44px; text-align: right; font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.alloc-table td.bars { width: 46%; padding-left: 12px; }
+.alloc-table .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; vertical-align: -1px; }
+.pair { display: grid; gap: 3px; }
+.pair i { display: block; height: 7px; border-radius: 4px; }
+.pair i.ref { background: var(--ref); height: 4px; }
+.delta { font-family: var(--font-data); font-size: 0.75rem; }
+.delta.up { color: var(--good); } .delta.down { color: var(--warn); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips span { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--paper); font-size: 0.88rem; }
+.callout { border-left: 3px solid var(--fam, var(--ink)); padding: 4px 0 4px 16px; display: grid; gap: 4px; }
+.callout .eyebrow { color: var(--fam, var(--muted)); }
+.disclaimer { font-size: 0.82rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; max-width: 80ch; }
+.share { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.share input { flex: 1; min-width: 0; font-family: var(--font-data); font-size: 0.78rem; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+.toast { font-size: 0.85rem; color: var(--good); }
+
+/* Galerie */
+.gallery-fam { display: grid; gap: 16px; }
+.gallery-fam + .gallery-fam { margin-top: 48px; }
+.gallery-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.gallery-head .tag { font-family: var(--font-data); color: var(--fam); font-weight: 600; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+.pcard-mini { --fam: var(--ink); display: grid; gap: 10px; padding: 20px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); text-decoration: none; transition: transform .2s ease, border-color .2s ease; align-content: start; }
+.pcard-mini:hover { transform: translateY(-3px); border-color: var(--fam); }
+.pcard-mini svg { width: 72px; height: auto; }
+.pcard-mini .code { font-family: var(--font-data); color: var(--fam); font-weight: 600; letter-spacing: 0.08em; font-size: 0.85rem; }
+.pcard-mini p { font-size: 0.88rem; color: var(--muted); }
+
+/* Méthode */
+.steps { counter-reset: s; display: grid; gap: 12px; padding: 0; margin: 0; list-style: none; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; font-size: 0.95rem; }
+.steps li::before { content: counter(s); font-family: var(--font-data); font-size: 0.8rem; width: 26px; height: 26px; border-radius: 8px; background: var(--sunken); display: grid; place-items: center; }
+.table-wrap { overflow-x: auto; }
+.mtable { width: 100%; border-collapse: collapse; font-size: 0.92rem; min-width: 560px; }
+.mtable th, .mtable td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.mtable th { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
+
+footer { border-top: 1px solid var(--line); padding-block: 28px 40px; font-size: 0.85rem; color: var(--muted); }
+footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+@media (max-width: 820px) {
+  .hero, .grid2 { grid-template-columns: minmax(0, 1fr); }
+  .pcard { grid-template-columns: minmax(0, 1fr); justify-items: start; }
+}
+@media (max-width: 560px) {
+  .likert-end { display: none; }
+  .likert-labels { display: flex; }
+  .dot[data-v="1"], .dot[data-v="5"] { width: 44px; height: 44px; }
+  .dot[data-v="2"], .dot[data-v="4"] { width: 36px; height: 36px; }
+  .nav a { padding: 6px 9px; font-size: 0.85rem; }
+  .brand span { font-size: 0.95rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* Version 1.1 : fiche longue, allocation enrichie */
+.story { display: grid; gap: 56px; }
+.story-lead { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+.prose-lg { display: grid; gap: 18px; font-size: 1.12rem; line-height: 1.7; max-width: 64ch; }
+.prose-lg p:first-child::first-letter { font-family: var(--font-display); font-size: 3.2em; float: left; line-height: 0.9; padding: 6px 10px 0 0; color: var(--fam); font-weight: 700; }
+.quick { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 76px); }
+.chapter { display: grid; gap: 14px; }
+.chapter > .eyebrow { color: var(--fam); }
+.prose { line-height: 1.7; }
+.moment { border-top: 3px solid var(--good); }
+.moment.warn { border-top-color: var(--warn); }
+.moment .eyebrow { color: var(--good); }
+.moment.warn .eyebrow { color: var(--warn); }
+.model { display: grid; gap: 4px; padding: 16px 18px; border-radius: var(--r); background: color-mix(in srgb, var(--fam) 8%, var(--surface)); border: 1px solid color-mix(in srgb, var(--fam) 30%, var(--line)); }
+.kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.kpis > div { display: grid; gap: 4px; padding: 16px 18px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); align-content: start; }
+.kpi { font-family: var(--font-display); font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.kpis .muted { font-size: 0.82rem; line-height: 1.4; }
+.stack { display: grid; gap: 20px; align-content: start; min-width: 0; }
+.small { font-size: 0.82rem; }
+.alloc-table tr.grp td { font-family: var(--font-data); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 14px; border-top: none; }
+.crisis { display: grid; gap: 6px; padding-block: 8px; border-top: 1px solid var(--line); }
+.crisis:first-of-type { border-top: none; }
+.crisis-head { font-size: 0.9rem; }
+.crisis-bars { display: grid; gap: 4px; }
+.cb { display: grid; grid-template-columns: 52px minmax(0, 1fr) 56px; gap: 10px; align-items: center; font-size: 0.82rem; }
+.cb .mono { text-align: right; }
+.cb-track { height: 8px; border-radius: 4px; background: var(--sunken); overflow: hidden; }
+.cb-track i { display: block; height: 100%; border-radius: 4px; }
+.factor { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 0.9rem; padding-block: 4px; }
+.fdots { display: flex; gap: 6px; }
+.fdots i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--line); }
+.fdots i.zero { border-style: dashed; }
+.fdots i.on { background: var(--fam); border-color: var(--fam); }
+.flegend { display: flex; justify-content: flex-end; gap: 52px; font-family: var(--font-data); font-size: 0.7rem; color: var(--muted); }
+.rels { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 8px; }
+.rel { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 14px; align-items: center; padding: 14px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); text-decoration: none; font-size: 0.9rem; transition: border-color .2s ease; }
+.rel:hover { border-color: var(--fam); }
+.rel svg { width: 56px; height: auto; }
+.rel .eyebrow { display: block; color: var(--fam); }
+@media (max-width: 820px) {
+  .story-lead { grid-template-columns: minmax(0, 1fr); }
+  .quick { position: static; }
+  .kpis { grid-template-columns: minmax(0, 1fr); }
+}
+
+</style>
 </head>
 <body>
 <header class="top">
@@ -35,14 +330,1414 @@
   </div>
 </footer>
 
-<script src="assets/questions.js"></script>
-<script src="assets/marches.js"></script>
-<script src="assets/profils.js"></script>
-<script src="assets/textes-sl.js"></script>
-<script src="assets/textes-sc.js"></script>
-<script src="assets/textes-ol.js"></script>
-<script src="assets/textes-oc.js"></script>
-<script src="assets/scoring.js"></script>
-<script src="assets/app.js"></script>
+<script>
+/* Banque de questions — version 1.0
+   Les points vont vers le second pôle : Offensive, Court terme, Intuition, Tendance, Réactif.
+   type : decl (échelle 1 à 5), sit (mise en situation), chif (chiffré), passe (comportement passé)
+   © QuidHabes — Alexandre Hezez, 2026 */
+
+window.AXES = [
+  { id: "R", nom: "Risque",    p1: { l: "S", n: "Sécurité" },   p2: { l: "O", n: "Offensive" } },
+  { id: "H", nom: "Horizon",   p1: { l: "L", n: "Long terme" }, p2: { l: "C", n: "Court terme" } },
+  { id: "M", nom: "Méthode",   p1: { l: "A", n: "Analyse" },    p2: { l: "I", n: "Intuition" } },
+  { id: "C", nom: "Consensus", p1: { l: "D", n: "Divergent" },  p2: { l: "T", n: "Tendance" } },
+  { id: "X", nom: "Discipline",p1: { l: "D", n: "Discipliné" }, p2: { l: "R", n: "Réactif" } }
+];
+
+/* Paires miroirs pour l'indice de cohérence */
+window.PAIRES = [["R1","R5"],["H2","H11"],["M2","M11"],["C2","C5"],["X2","X5"]];
+
+/* Version courte (16 questions, sans suffixe) */
+window.COURTE = ["R5","R7","R10","R12","H2","H6","H9","H11","M2","M6","M9","M11","C5","C6","C9","C11"];
+
+const o = (...l) => l.map((t, p) => ({ t, p }));
+
+window.QUESTIONS = [
+  // Axe Risque
+  { id: "R1", axe: "R", type: "decl", texte: "Une baisse de 20 % de mon portefeuille ne m'empêcherait pas de dormir." },
+  { id: "R2", axe: "R", type: "decl", inv: true, texte: "Je préfère un rendement modeste mais régulier à un rendement élevé mais incertain." },
+  { id: "R3", axe: "R", type: "decl", texte: "Le risque est d'abord pour moi une source d'opportunités." },
+  { id: "R4", axe: "R", type: "decl", inv: true, texte: "Je pense davantage à ce que je pourrais perdre qu'à ce que je pourrais gagner." },
+  { id: "R5", axe: "R", type: "sit", contexte: "Mars 2020", texte: "Vos actions perdent 30 % en trois semaines. Que faites-vous ?",
+    options: o("Je vends tout pour préserver le reste", "Je réduis de moitié", "Je ne touche à rien", "Je renforce") },
+  { id: "R6", axe: "R", type: "sit", contexte: "2022", texte: "Avec la hausse des taux, vos obligations, réputées sûres, perdent 15 % sur l'année. Que faites-vous ?",
+    options: o("Je vends tout pour des livrets ou un fonds en euros", "Je réduis", "Je conserve jusqu'à l'échéance", "Je renforce, les rendements sont enfin attractifs") },
+  { id: "R7", axe: "R", type: "sit", texte: "Sur dix ans, l'allocation A a pour pire année −8 % et rend 4 % par an. L'allocation B a pour pire année −35 % et rend 8 % par an. Votre choix ?",
+    options: o("100 % A", "70 % A, 30 % B", "30 % A, 70 % B", "100 % B") },
+  { id: "R8", axe: "R", type: "sit", texte: "Après une forte hausse, une ligne pèse 40 % de vos placements financiers. Que faites-vous ?",
+    options: o("Je vends l'essentiel", "Je la ramène à 20 %", "Je la garde", "Je la renforce") },
+  { id: "R9", axe: "R", type: "chif", texte: "Pile ou face : 50 % de chances de gagner 10 000 €, 50 % de ne rien gagner. Quel montant certain vous ferait renoncer au pari ?",
+    options: o("2 000 € ou moins", "3 000 €", "4 000 €", "5 000 € ou plus") },
+  { id: "R10", axe: "R", type: "chif", texte: "Pile ou face : si vous perdez, vous perdez 1 000 €. Quel gain exigez-vous pour accepter de jouer ?",
+    options: o("Je ne joue pas, quel que soit le gain", "3 000 € ou plus", "2 000 €", "1 500 € ou moins") },
+  { id: "R11", axe: "R", type: "passe", neutre: "Je n'ai jamais connu de baisse significative", texte: "Lors de la plus forte baisse que vous ayez connue sur vos placements, qu'avez-vous fait ?",
+    options: o("J'ai vendu l'essentiel", "J'ai vendu une partie", "Rien", "J'ai acheté") },
+  { id: "R12", axe: "R", type: "passe", texte: "Avez-vous déjà investi dans un actif que vous saviez très risqué (start-up, crypto-actif, petite capitalisation, levier) ?",
+    options: o("Jamais", "Une fois, une petite somme", "Plusieurs fois", "Régulièrement et de façon significative") },
+
+  // Axe Horizon
+  { id: "H1", axe: "H", type: "decl", texte: "Je consulte la valeur de mes placements au moins une fois par semaine." },
+  { id: "H2", axe: "H", type: "decl", inv: true, texte: "Je peux conserver un placement dix ans sans y toucher." },
+  { id: "H3", axe: "H", type: "decl", texte: "Une opportunité doit être saisie vite, sinon elle disparaît." },
+  { id: "H4", axe: "H", type: "decl", inv: true, texte: "Les fluctuations d'une année ne disent rien de la qualité d'un placement." },
+  { id: "H5", axe: "H", type: "sit", texte: "Une action achetée il y a six mois stagne, alors que le marché a pris 10 %. Que faites-vous ?",
+    options: o("Je garde, la thèse reste valable", "J'attends un an avant de juger", "Je réduis", "Je vends pour une valeur qui monte") },
+  { id: "H6", axe: "H", type: "sit", texte: "Vous recevez 100 000 € à placer. Comment procédez-vous ?",
+    options: o("Un plan sur 15 ans, puis je n'y pense plus", "J'investis progressivement sur 12 mois", "Je garde une large poche pour saisir les occasions", "Je cherche des opportunités à rendement rapide") },
+  { id: "H7", axe: "H", type: "sit", texte: "Un placement gagne 25 % en deux mois. Que faites-vous ?",
+    options: o("Rien, mon objectif est inchangé", "Je rééquilibre au prochain point annuel", "Je prends une partie des gains", "Je vends tout") },
+  { id: "H8", axe: "H", type: "sit", texte: "Une annonce de banque centrale fait bouger les marchés de 2 % dans la journée. Que faites-vous ?",
+    options: o("Je ne regarde pas", "Je lis une analyse le soir", "J'ajuste éventuellement le lendemain", "J'agis dans l'heure") },
+  { id: "H9", axe: "H", type: "chif", texte: "On vous offre 10 000 € aujourd'hui, ou une somme plus élevée dans cinq ans. À partir de quelle somme acceptez-vous d'attendre ?",
+    options: o("11 000 €", "12 500 €", "15 000 €", "20 000 € ou plus") },
+  { id: "H10", axe: "H", type: "chif", texte: "Placement A : 3 % par an, versés chaque année. Placement B : 5 % par an, tout versé au bout de dix ans, sans sortie possible. Votre répartition ?",
+    options: o("100 % B", "Majorité B", "Majorité A", "100 % A") },
+  { id: "H11", axe: "H", type: "passe", texte: "Combien d'achats ou de ventes avez-vous réalisés sur les douze derniers mois ?",
+    options: o("Aucun, ou versements programmés", "1 à 5", "6 à 20", "Plus de 20") },
+  { id: "H12", axe: "H", type: "passe", neutre: "Je n'ai pas encore de placements", texte: "Depuis quand détenez-vous votre plus ancien placement financier encore en portefeuille ?",
+    options: o("Plus de 10 ans", "5 à 10 ans", "1 à 5 ans", "Moins d'un an") },
+
+  // Axe Méthode
+  { id: "M1", axe: "M", type: "decl", texte: "Je fais confiance à mon instinct, même quand les chiffres disent le contraire." },
+  { id: "M2", axe: "M", type: "decl", inv: true, texte: "Avant d'investir, je lis les comptes ou une analyse détaillée." },
+  { id: "M3", axe: "M", type: "decl", texte: "Une bonne histoire d'entreprise me convainc davantage qu'un tableau de ratios." },
+  { id: "M4", axe: "M", type: "decl", inv: true, texte: "Je formalise par écrit les raisons de mes investissements." },
+  { id: "M5", axe: "M", type: "sit", texte: "Un ami entrepreneur vous présente son projet avec enthousiasme. Que faites-vous ?",
+    options: o("Je demande le plan d'affaires et des projections chiffrées", "Je demande quelques chiffres clés", "Je juge surtout l'homme et le marché", "J'investis si je le sens") },
+  { id: "M6", axe: "M", type: "sit", texte: "Fonds A : méthode quantitative expliquée en détail. Fonds B : gérant charismatique au palmarès remarquable. Votre choix ?",
+    options: o("A sans hésiter", "Plutôt A", "Plutôt B", "B sans hésiter") },
+  { id: "M7", axe: "M", type: "sit", texte: "Votre analyse indique d'acheter, mais quelque chose vous gêne sans que vous sachiez quoi. Que faites-vous ?",
+    options: o("Je suis l'analyse", "J'achète une demi-position", "J'attends d'y voir clair", "Je renonce, mon intuition prime") },
+  { id: "M8", axe: "M", type: "sit", texte: "Quelle est votre source principale pour suivre les marchés ?",
+    options: o("Données, rapports annuels, études", "Notes d'analystes et presse spécialisée", "Échanges avec des personnes de confiance", "Mon ressenti et mon expérience") },
+  { id: "M9", axe: "M", type: "chif", texte: "Un fonds perd 50 %, puis gagne 50 %. Par rapport au départ, où en est-il ?",
+    options: [{ t: "−25 %", p: 0 }, { t: "Je ne sais pas", p: 2 }, { t: "+25 %", p: 2 }, { t: "Revenu au point de départ", p: 3 }] },
+  { id: "M10", axe: "M", type: "chif", texte: "Un placement double tous les six ans et atteint 100 000 € au bout de 30 ans. En quelle année valait-il 50 000 € ?",
+    options: [{ t: "Année 24", p: 0 }, { t: "Je ne sais pas", p: 2 }, { t: "Année 27", p: 2 }, { t: "Année 15", p: 3 }] },
+  { id: "M11", axe: "M", type: "passe", neutre: "Je n'ai pas encore fait d'investissement significatif", texte: "Comment a été décidé votre dernier investissement significatif ?",
+    options: o("Après plusieurs semaines d'analyse", "Après quelques jours de réflexion", "Après une discussion convaincante", "Presque immédiatement, par conviction") },
+  { id: "M12", axe: "M", type: "passe", texte: "Tenez-vous un suivi écrit de vos décisions et de leurs résultats ?",
+    options: o("Systématiquement", "Parfois", "Rarement", "Jamais") },
+
+  // Axe Consensus
+  { id: "C1", axe: "C", type: "decl", texte: "Quand tout le monde achète un actif, c'est plutôt un signal pour y aller." },
+  { id: "C2", axe: "C", type: "decl", inv: true, texte: "J'aime acheter ce que les autres délaissent." },
+  { id: "C3", axe: "C", type: "decl", texte: "Je suis plus à l'aise quand mes choix ressemblent à ceux des investisseurs que je respecte." },
+  { id: "C4", axe: "C", type: "decl", inv: true, texte: "Les prévisions consensuelles se trompent souvent aux moments clés." },
+  { id: "C5", axe: "C", type: "sit", contexte: "Automne 2008", texte: "Les valeurs bancaires ont perdu 60 % et la presse annonce l'effondrement du système. Que faites-vous ?",
+    options: o("J'achète", "J'étudie le dossier", "J'attends un signal de reprise", "Je l'évite") },
+  { id: "C6", axe: "C", type: "sit", contexte: "Fin 1999", texte: "Les valeurs internet ont triplé en deux ans et dominent toutes les conversations. Que faites-vous ?",
+    options: o("J'allège ou je l'évite", "Je reste neutre", "Je garde mon exposition", "Je renforce, la tendance est mon amie") },
+  { id: "C7", axe: "C", type: "sit", texte: "Votre analyse contredit l'avis unanime des analystes. Que faites-vous ?",
+    options: o("Je prends position contre le consensus", "Je prends une petite position", "Je revois mon analyse", "Je me range au consensus") },
+  { id: "C8", axe: "C", type: "sit", texte: "Lors d'un dîner, tout le monde parle d'un placement qui a enrichi plusieurs convives. Que faites-vous ?",
+    options: o("J'y vois un signal de fin de cycle", "Je reste indifférent", "Je me renseigne", "J'investis dès le lendemain") },
+  { id: "C9", axe: "C", type: "chif", texte: "Rendement espéré identique. Stratégie A : vous gagnez ou perdez en même temps que la plupart des investisseurs. Stratégie B : vos résultats sont décalés, parfois seul gagnant, parfois seul perdant. Votre choix ?",
+    options: o("100 % B", "Plutôt B", "Plutôt A", "100 % A") },
+  { id: "C10", axe: "C", type: "chif", texte: "Un actif a pris 30 % en six mois. Quelle probabilité donnez-vous à une nouvelle hausse sur les six mois suivants ?",
+    options: o("Nettement moins de 50 %", "Un peu moins de 50 %", "Un peu plus de 50 %", "Nettement plus de 50 %") },
+  { id: "C11", axe: "C", type: "passe", neutre: "Je n'ai pas encore fait d'achat important", texte: "Votre dernier achat important portait sur un actif…",
+    options: o("En forte baisse et délaissé", "Stable et peu suivi", "En hausse modérée", "En forte hausse et très médiatisé") },
+  { id: "C12", axe: "C", type: "passe", texte: "Avez-vous déjà investi parce que votre entourage ou les médias en parlaient beaucoup ?",
+    options: o("Jamais", "Une fois", "Quelques fois", "Souvent") },
+
+  // Suffixe Discipline
+  { id: "X1", axe: "X", type: "decl", texte: "Il m'est arrivé de prendre une décision d'investissement sous le coup de l'émotion, et de la regretter." },
+  { id: "X2", axe: "X", type: "decl", inv: true, texte: "Je fixe mes règles de sortie avant d'entrer sur une position." },
+  { id: "X3", axe: "X", type: "decl", texte: "Quand un placement baisse, j'y pense au point d'en être préoccupé." },
+  { id: "X4", axe: "X", type: "decl", inv: true, texte: "Je respecte mon allocation cible même quand les marchés s'agitent." },
+  { id: "X5", axe: "X", type: "sit", texte: "Votre seuil de perte de −15 % est atteint, mais le marché semble rebondir. Que faites-vous ?",
+    options: o("Je vends comme prévu", "Je vends la moitié", "Je déplace le seuil", "J'annule et je renforce") },
+  { id: "X6", axe: "X", type: "sit", texte: "Un proche a gagné 50 % sur une position que vous aviez écartée. Votre réaction ?",
+    options: o("Aucune", "J'analyse pourquoi", "Je ressens du regret", "J'achète pour rattraper") },
+  { id: "X7", axe: "X", type: "passe", texte: "Après une perte, avez-vous déjà augmenté votre prise de risque pour vous refaire ?",
+    options: o("Jamais", "Une fois", "Quelques fois", "Souvent") },
+  { id: "X8", axe: "X", type: "passe", texte: "Avez-vous déjà vendu au plus bas une position qui est ensuite remontée ?",
+    options: o("Jamais", "Une fois", "Quelques fois", "Souvent") }
+];
+
+</script>
+<script>
+/* Classes d'actifs, hypothèses de marché et épisodes de crise
+   © QuidHabes — Alexandre Hezez, 2026. Version 1.1
+
+   Rendements attendus (10 ans, nominaux, en % par an) :
+   - source principale : Amundi Investment Institute, Capital Market Assumptions, mise à jour H2 2026
+     (données au 30 juin 2026) ;
+   - complément : J.P. Morgan Asset Management, 2026 Long-Term Capital Market Assumptions (données au 30 septembre 2025, en USD) ;
+   - "est." : interpolation ou estimation QuidHabes à partir de ces deux sources.
+
+   Crises (performance de la classe sur l'épisode, en euros, arrondie) :
+   - 2008 : année civile ; 2020 : krach du 19 février au 23 mars 2020 ; 2022 : année civile.
+   - Points d'ancrage publiés : MSCI World en euros −12,8 % en 2022 ; obligations d'État de la zone euro −18,2 %
+     et obligations d'entreprises en euros −13,6 % en 2022 (Milliman) ; SG Trend Index +20,9 % en 2008 et +27,4 % en 2022
+     (Cambridge Associates) ; MSCI ACWI −42,2 % en 2008 en dollars.
+   - Les autres valeurs sont des ordres de grandeur estimés à partir d'indices représentatifs. Elles servent à comparer
+     les profils entre eux, pas à prévoir une perte. */
+
+window.CLASSES = [
+  { id: "MON",    nom: "Monétaire et fonds en euros",          court: "Monétaire",        groupe: "Liquidités",     couleur: "#9aa8b2", r: 1.9,  rs: "Amundi",
+    c: [4, 0, 0] },
+  { id: "GOVC",   nom: "Obligations d'État courtes (1-3 ans)", court: "État court",       groupe: "Obligations",    couleur: "#7fa6d6", r: 2.4,  rs: "est.",
+    c: [6, 0, -5] },
+  { id: "GOVL",   nom: "Obligations d'État longues (10 ans et plus)", court: "État long", groupe: "Obligations",    couleur: "#2b5590", r: 4.2,  rs: "est.",
+    c: [9, -2, -30] },
+  { id: "INFL",   nom: "Obligations indexées sur l'inflation", court: "Indexées",         groupe: "Obligations",    couleur: "#4b77b3", r: 3.4,  rs: "est.",
+    c: [1, -6, -9] },
+  { id: "IG",     nom: "Crédit investment grade",              court: "Crédit IG",        groupe: "Obligations",    couleur: "#5f8fa8", r: 3.5,  rs: "Amundi",
+    c: [-3, -8, -14] },
+  { id: "HY",     nom: "Haut rendement",                       court: "Haut rendement",   groupe: "Obligations",    couleur: "#3f7388", r: 4.6,  rs: "Amundi",
+    c: [-32, -20, -11] },
+  { id: "ACTD",   nom: "Actions des pays développés",          court: "Actions dév.",     groupe: "Actions",        couleur: "#2b7a66", r: 7.9,  rs: "Amundi",
+    c: [-38, -32, -13] },
+  { id: "ACTE",   nom: "Actions émergentes",                   court: "Actions émerg.",   groupe: "Actions",        couleur: "#4fa386", r: 7.7,  rs: "Amundi",
+    c: [-51, -30, -15] },
+  { id: "SMALL",  nom: "Petites capitalisations",              court: "Petites capi.",    groupe: "Actions",        couleur: "#86c2a6", r: 8.2,  rs: "est.",
+    c: [-42, -40, -15] },
+  { id: "IMMO",   nom: "Immobilier et infrastructures",        court: "Immobilier",       groupe: "Actifs réels",   couleur: "#b0693a", r: 5.3,  rs: "Amundi",
+    c: [-20, -15, -10] },
+  { id: "OR",     nom: "Or",                                   court: "Or",               groupe: "Actifs réels",   couleur: "#c9a227", r: 6.4,  rs: "Amundi",
+    c: [10, -3, 6] },
+  { id: "MATP",   nom: "Matières premières",                   court: "Mat. premières",   groupe: "Actifs réels",   couleur: "#d98d4c", r: 3.8,  rs: "J.P. Morgan",
+    c: [-40, -25, 20] },
+  { id: "PRIV",   nom: "Non coté (capital-investissement, dette privée)", court: "Non coté", groupe: "Alternatifs", couleur: "#6a55a8", r: 9.0,  rs: "est.",
+    c: [-30, -20, -10] },
+  { id: "ALT",    nom: "Stratégies alternatives liquides (tendance, macro, neutre au marché)", court: "Stratégies alt.", groupe: "Alternatifs", couleur: "#9a86d6", r: 5.3, rs: "Amundi",
+    c: [10, -3, 12] },
+  { id: "CRYPTO", nom: "Crypto-actifs",                        court: "Crypto",           groupe: "Alternatifs",    couleur: "#c4506f", r: null, rs: "non estimé",
+    c: [-50, -50, -60] }
+];
+
+window.CRISES = [
+  { id: "2008", nom: "Crise financière", periode: "Année 2008" },
+  { id: "2020", nom: "Krach du Covid",   periode: "19 février – 23 mars 2020" },
+  { id: "2022", nom: "Krach obligataire", periode: "Année 2022" }
+];
+
+window.FACTEURS = [
+  { id: "value", nom: "Value" },
+  { id: "qualite", nom: "Qualité" },
+  { id: "croissance", nom: "Croissance" },
+  { id: "momentum", nom: "Momentum" },
+  { id: "faibleVol", nom: "Faible volatilité" },
+  { id: "dividende", nom: "Dividende" },
+  { id: "taille", nom: "Petites capitalisations" }
+];
+
+window.SOURCES = [
+  { t: "Amundi Investment Institute, Capital Market Assumptions, mise à jour H2 2026", u: "https://research-center.amundi.com/files/nuxeo/dl/6df1bf9d-44de-412e-aa5c-4578e393e8b0" },
+  { t: "J.P. Morgan Asset Management, 2026 Long-Term Capital Market Assumptions", u: "https://am.jpmorgan.com/content/dam/jpm-am-aem/global/en/insights/ltcma-2026-us-matrix_usd.pdf" },
+  { t: "Milliman, EuroZone Market Monitor, décembre 2022", u: "https://edge.sitecorecloud.io/millimaninc5660-milliman6442-prod27d5-0001/media/Milliman/PDFs/2023-Articles/3-6-23_EuroZone-Market-Monitor-December-2022.pdf" },
+  { t: "Cambridge Associates, Does trend following's recent struggle signal that the strategy is structurally broken?", u: "https://www.cambridgeassociates.com/insight/does-trend-followings-recent-struggle-signal-that-the-strategy-is-structurally-broken/" },
+  { t: "MSCI World : historique des performances en USD et en EUR", u: "https://investingintheweb.com/blog/msci-world-index-historical-data/" },
+  { t: "Insee, Revenus et patrimoine des ménages, édition 2024", u: "https://www.insee.fr/fr/statistiques/7941439" },
+  { t: "Banque de France, Épargne des ménages, 4e trimestre 2025", u: "https://www.banque-france.fr/fr/statistiques/epargne/epargne-des-menages-2025-q4" },
+  { t: "Portfolio Charts, Permanent Portfolio", u: "https://portfoliocharts.com/portfolio/permanent-portfolio/" },
+  { t: "Wealthyhood, The All Weather Portfolio", u: "https://wealthyhood.com/eu/learning-guides/invest-like-ray-dalio/the-all-weather-portfolio/" },
+  { t: "The Motley Fool, Warren Buffett's investing plan for his family (lettre aux actionnaires 2013)", u: "https://www.fool.com/investing/2019/09/08/warren-buffetts-investing-plan-for-his-family-why.aspx" }
+];
+
+/* Références académiques citées dans les profils */
+window.RECHERCHE = [
+  "Kahneman, D. et Tversky, A. (1979), Prospect Theory: An Analysis of Decision under Risk, Econometrica.",
+  "Shefrin, H. et Statman, M. (1985), The Disposition to Sell Winners Too Early and Ride Losers Too Long, Journal of Finance.",
+  "Fama, E. et French, K. (1992), The Cross-Section of Expected Stock Returns, Journal of Finance.",
+  "Jegadeesh, N. et Titman, S. (1993), Returns to Buying Winners and Selling Losers, Journal of Finance.",
+  "Barber, B. et Odean, T. (2000), Trading Is Hazardous to Your Wealth, Journal of Finance.",
+  "Huberman, G. (2001), Familiarity Breeds Investment, Review of Financial Studies.",
+  "Faber, M. (2007), A Quantitative Approach to Tactical Asset Allocation, Journal of Wealth Management.",
+  "Kumar, A. (2009), Who Gambles in the Stock Market?, Journal of Finance.",
+  "Asness, C., Moskowitz, T. et Pedersen, L. (2013), Value and Momentum Everywhere, Journal of Finance.",
+  "Graham, B., The Intelligent Investor (1949, éditions révisées).",
+  "Browne, H., Fail-Safe Investing (1999).",
+  "Swensen, D., Pioneering Portfolio Management (2000).",
+  "Taleb, N. N., Antifragile (2012)."
+];
+
+</script>
+<script>
+/* Profils d'investisseurs — données des 16 profils
+   © QuidHabes — Alexandre Hezez, 2026. Version 1.1
+   alloc : poids en % par classe d'actifs (voir marches.js), total 100.
+   facteurs : inclinaison de la poche actions, de −2 (fortement sous-pondéré) à +2 (fortement surpondéré).
+   modele : portefeuille de référence documenté dont l'allocation s'écarte. */
+
+window.REFERENCE = {
+  nom: "Équilibré 60/40",
+  alloc: { MON: 5, GOVC: 10, GOVL: 10, INFL: 0, IG: 15, HY: 0, ACTD: 50, ACTE: 7, SMALL: 3, IMMO: 0, OR: 0, MATP: 0, PRIV: 0, ALT: 0, CRYPTO: 0 }
+};
+
+window.FAMILLES = {
+  SL: { nom: "Les Patrimoniaux", desc: "Sécurité et long terme : ils construisent lentement et protègent ce qui est acquis." },
+  SC: { nom: "Les Tacticiens",   desc: "Sécurité et court terme : ils pilotent le risque au plus près et ajustent sans cesse." },
+  OL: { nom: "Les Conquérants",  desc: "Offensive et long terme : ils misent sur la croissance et laissent le temps travailler." },
+  OC: { nom: "Les Opportunistes",desc: "Offensive et court terme : ils cherchent le mouvement et saisissent les occasions." }
+};
+
+const Z = { MON: 0, GOVC: 0, GOVL: 0, INFL: 0, IG: 0, HY: 0, ACTD: 0, ACTE: 0, SMALL: 0, IMMO: 0, OR: 0, MATP: 0, PRIV: 0, ALT: 0, CRYPTO: 0 };
+const A = o => Object.assign({}, Z, o);
+
+window.PROFILS = {
+  SLAD: {
+    nom: "Le Gardien de valeur",
+    devise: "Acheter un euro pour cinquante centimes, et attendre.",
+    forces: ["Discipline de prix et marge de sécurité", "Résistance aux modes et aux bulles", "Capacité à acheter dans le pessimisme"],
+    biais: ["Piège de la valeur : une décote peut être méritée", "Sous-exposition chronique à la croissance", "Ancrage sur un prix d'achat ou une valeur historique"],
+    danger: "Une longue phase où la croissance chère continue de surperformer : vous risquez de douter de votre méthode au pire moment.",
+    regles: ["Distinguer décote temporaire et déclin structurel avant d'acheter", "Garder une poche d'actions mondiales indicielles pour ne pas rater les cycles de croissance", "Revoir chaque ligne en se demandant : l'achèterais-je aujourd'hui ?"],
+    actifs: ["Actions décotées à dividende", "Holdings cotées sous leur actif net", "Obligations d'entreprises solides", "Or physique en réserve"],
+    angleMort: "Les sociétés de croissance de qualité, jugées trop chères trop tôt.",
+    modele: { nom: "L'investisseur « entreprenant » de Benjamin Graham", desc: "Entre 25 % et 75 % d'actions, des titres achetés sous leur valeur intrinsèque, une solide poche obligataire." },
+    alloc: A({ MON: 8, GOVC: 10, GOVL: 5, INFL: 5, IG: 12, ACTD: 30, ACTE: 5, SMALL: 10, IMMO: 8, OR: 7 }),
+    facteurs: { value: 2, qualite: 1, croissance: -2, momentum: -1, faibleVol: 1, dividende: 1, taille: 1 },
+    note: "La poche actions privilégie les titres décotés et les holdings ; elle reste entre les bornes de 25 % et 75 % fixées par Graham.",
+    gardeFou: "Plafonner chaque titre décoté à 5 % du portefeuille et garder au moins 15 % d'actions mondiales indicielles.",
+    esprit: "Benjamin Graham, Walter Schloss"
+  },
+  SLAT: {
+    nom: "L'Architecte",
+    devise: "Un bon plan bat une bonne prévision.",
+    forces: ["Diversification réelle et rééquilibrage régulier", "Coûts maîtrisés", "Sérénité face au bruit de marché"],
+    biais: ["Excès de conformité aux modèles standards", "Confiance excessive dans les corrélations passées", "Sous-réaction aux ruptures de régime"],
+    danger: "Un choc où actions et obligations baissent ensemble, comme en 2022 : la diversification classique protège moins que prévu.",
+    regles: ["Tester l'allocation dans un scénario d'inflation et de hausse des taux", "Ajouter une source de décorrélation (or, obligations indexées)", "Écrire ses règles de rééquilibrage et les appliquer sans exception"],
+    actifs: ["ETF actions mondiales", "Obligations d'État diversifiées", "Obligations indexées sur l'inflation", "Fonds à frais réduits"],
+    angleMort: "Les actifs réels et les stratégies décorrélées, qui protègent quand le modèle 60/40 casse.",
+    modele: { nom: "Le portefeuille indiciel de John Bogle", desc: "Quelques fonds indiciels à bas coût, actions mondiales et obligations, rééquilibrés à date fixe." },
+    alloc: A({ MON: 5, GOVC: 10, GOVL: 10, INFL: 5, IG: 10, ACTD: 45, ACTE: 8, SMALL: 2, IMMO: 3, OR: 2 }),
+    facteurs: { value: 0, qualite: 0, croissance: 0, momentum: 0, faibleVol: 0, dividende: 0, taille: 0 },
+    note: "La poche actions réplique le marché mondial, sans inclinaison de style.",
+    gardeFou: "Porter à 10 % la part des actifs qui ne dépendent ni des taux ni des bénéfices (or, indexées, immobilier).",
+    esprit: "John Bogle, Burton Malkiel"
+  },
+  SLID: {
+    nom: "Le Patriarche",
+    devise: "Ce qui se touche se transmet.",
+    forces: ["Horizon très long et faible rotation", "Sens de la valeur réelle et du patrimoine tangible", "Sang-froid dans les crises"],
+    biais: ["Biais de familiarité : concentration sur ce que l'on connaît", "Sous-estimation du risque d'illiquidité", "Diversification géographique insuffisante"],
+    danger: "Un besoin de liquidité au mauvais moment, quand l'immobilier ne se vend qu'avec une forte décote.",
+    regles: ["Garder une réserve liquide couvrant au moins deux ans de besoins", "Plafonner le poids d'un seul bien ou d'une seule ville", "Ouvrir une poche d'actions internationales cotées"],
+    actifs: ["Immobilier locatif", "Terres agricoles et forêts", "Or physique", "Participations dans des entreprises familiales"],
+    angleMort: "Les actions mondiales cotées, liquides et diversifiées.",
+    modele: { nom: "Le patrimoine type des ménages français", desc: "L'immobilier représente environ 62 % du patrimoine brut des ménages (Insee, 2021) ; le patrimoine financier, 21 %." },
+    alloc: A({ MON: 8, GOVL: 5, INFL: 2, IG: 5, ACTD: 15, SMALL: 5, IMMO: 40, OR: 10, PRIV: 10 }),
+    facteurs: { value: 1, qualite: 1, croissance: -1, momentum: -1, faibleVol: 1, dividende: 2, taille: 1 },
+    note: "Le non coté correspond aux participations dans des entreprises familiales ; la poche actions a un fort biais domestique.",
+    gardeFou: "Ramener l'immobilier sous 30 % et porter les actions cotées internationales à au moins 25 %.",
+    esprit: "Les grandes familles patrimoniales"
+  },
+  SLIT: {
+    nom: "Le Rentier",
+    devise: "Un revenu régulier vaut mieux qu'une promesse.",
+    forces: ["Grande régularité et faible stress", "Peu d'erreurs de comportement", "Revenus lisibles et planifiables"],
+    biais: ["Biais du statu quo", "Illusion monétaire : l'inflation érode le capital sans bruit", "Concentration sur les produits distribués par son réseau"],
+    danger: "Une inflation durable : un rendement nominal stable masque une perte de pouvoir d'achat.",
+    regles: ["Raisonner en rendement réel, après inflation et fiscalité", "Introduire progressivement une poche d'actions de long terme", "Comparer les frais de chaque produit chaque année"],
+    actifs: ["Fonds en euros", "Immobilier collectif (SCPI)", "Obligations à rendement régulier", "Livrets réglementés"],
+    angleMort: "Les actions sur longue période, principal moteur de croissance réelle du capital.",
+    modele: { nom: "L'investisseur « défensif » de Benjamin Graham", desc: "Obligations de qualité et grandes valeurs à dividende régulier, au moins 25 % d'actions." },
+    alloc: A({ MON: 25, GOVC: 10, GOVL: 5, INFL: 5, IG: 15, HY: 3, ACTD: 20, IMMO: 12, OR: 5 }),
+    facteurs: { value: 1, qualite: 1, croissance: -1, momentum: 0, faibleVol: 2, dividende: 2, taille: -1 },
+    note: "Le monétaire inclut les livrets et le fonds en euros, qui pèsent environ 55 % des placements financiers des ménages hors participations non cotées (Banque de France, fin 2025).",
+    gardeFou: "Limiter le monétaire à 15 % et viser au moins 25 % d'actions pour tout horizon supérieur à huit ans.",
+    esprit: "Benjamin Graham, l'épargnant prudent"
+  },
+  SCAD: {
+    nom: "L'Arbitragiste",
+    devise: "Gagner peu, souvent, sans jamais perdre beaucoup.",
+    forces: ["Rigueur quantitative", "Rendement peu dépendant de la direction du marché", "Contrôle fin du risque unitaire"],
+    biais: ["Sous-estimation des risques extrêmes", "Excès de confiance dans le retour à la moyenne", "Tentation du levier pour amplifier de petits écarts"],
+    danger: "Une crise de liquidité où tous les écarts s'élargissent en même temps, comme en 1998 ou en 2008.",
+    regles: ["Dimensionner chaque position pour le pire scénario, pas pour le scénario moyen", "Plafonner le levier global", "Garder une réserve de liquidités pour tenir les écarts"],
+    actifs: ["Obligations courtes", "Stratégies neutres au marché", "Arbitrages de convertibles ou de fusions", "Obligations indexées sur l'inflation"],
+    angleMort: "Le rendement de long terme des actions, sacrifié pour une courbe lisse.",
+    modele: { nom: "La parité des risques (All Weather de Ray Dalio)", desc: "Chaque moteur économique pèse le même risque : 30 % d'actions, 55 % d'obligations, 15 % d'or et de matières premières dans la version grand public." },
+    alloc: A({ MON: 10, GOVC: 15, GOVL: 15, INFL: 10, IG: 10, ACTD: 20, OR: 5, MATP: 5, ALT: 10 }),
+    facteurs: { value: 1, qualite: 1, croissance: -1, momentum: 0, faibleVol: 2, dividende: 0, taille: -1 },
+    note: "Les stratégies alternatives sont des stratégies de valeur relative et neutres au marché.",
+    gardeFou: "Tester chaque stratégie sur 2008 et mars 2020 avant de l'augmenter, et ne jamais emprunter pour l'amplifier.",
+    esprit: "Edward Thorp"
+  },
+  SCAT: {
+    nom: "Le Pilote",
+    devise: "On ne prévoit pas la météo, on règle les instruments.",
+    forces: ["Gestion du risque explicite", "Réactivité encadrée par des règles", "Protection en marché baissier"],
+    biais: ["Coûts de rotation élevés", "Faux signaux en marché sans tendance", "Excès de couverture qui coûte cher sur la durée"],
+    danger: "Un marché sans direction, avec des allers-retours rapides : chaque signal arrive trop tard et coûte.",
+    regles: ["Mesurer le coût annuel de vos couvertures", "Réduire la fréquence des ajustements", "Garder un socle stratégique qui ne bouge jamais"],
+    actifs: ["ETF ajustés selon des signaux de tendance", "Fonds flexibles", "Stratégies de suivi de tendance", "Obligations courtes"],
+    angleMort: "Le coût cumulé des protections et des allers-retours.",
+    modele: { nom: "L'allocation tactique de Mebane Faber (2007)", desc: "Un portefeuille diversifié dont chaque classe sort du marché quand son prix passe sous sa moyenne de dix mois." },
+    alloc: A({ MON: 15, GOVC: 15, GOVL: 5, INFL: 5, IG: 10, ACTD: 30, ACTE: 5, OR: 5, ALT: 10 }),
+    facteurs: { value: 0, qualite: 1, croissance: 0, momentum: 1, faibleVol: 1, dividende: 0, taille: -1 },
+    note: "Le monétaire élevé correspond aux positions sorties du marché par le filtre de tendance.",
+    gardeFou: "Figer 50 % du portefeuille en allocation stratégique, hors pilotage tactique.",
+    esprit: "Mebane Faber, les gérants flexibles"
+  },
+  SCID: {
+    nom: "La Sentinelle",
+    devise: "Sortir avant que la salle ne se vide.",
+    forces: ["Détection précoce des excès", "Gestion prudente des gains", "Liquidités disponibles pour les occasions"],
+    biais: ["Ventes prématurées", "Regret et tentation de racheter plus haut", "Coût d'opportunité d'une trésorerie trop large"],
+    danger: "Un long marché haussier : vous êtes sorti trop tôt et n'osez plus revenir.",
+    regles: ["Vendre par tiers plutôt qu'en une fois", "Fixer à l'avance les conditions de retour sur le marché", "Plafonner la trésorerie inutilisée"],
+    actifs: ["Or", "Liquidités et placements courts", "Obligations d'État longues", "Valeurs de qualité"],
+    angleMort: "La performance des actions dans les phases d'euphorie, souvent les plus longues.",
+    modele: { nom: "Le Portefeuille permanent de Harry Browne", desc: "Quatre quarts égaux : actions, obligations longues, or et liquidités, pour traverser tous les régimes économiques." },
+    alloc: A({ MON: 25, GOVC: 5, GOVL: 20, ACTD: 20, SMALL: 5, OR: 20, ALT: 5 }),
+    facteurs: { value: 1, qualite: 2, croissance: -1, momentum: -1, faibleVol: 2, dividende: 1, taille: 0 },
+    note: "Une allocation proche des quatre quarts de Browne, avec une petite poche de stratégies de couverture.",
+    gardeFou: "Ne jamais descendre sous 25 % d'actions, même quand le marché paraît cher.",
+    esprit: "Harry Browne, les investisseurs de fin de cycle"
+  },
+  SCIT: {
+    nom: "Le Vigilant",
+    devise: "Rester informé, toujours.",
+    forces: ["Très bonne information", "Prudence spontanée", "Capacité d'adaptation"],
+    biais: ["Vendre au plus bas, acheter au plus haut", "Surréaction aux nouvelles", "Effet de foule"],
+    danger: "Un krach rapide suivi d'un rebond rapide, comme en 2020 : vous vendez dans la panique et rachetez plus haut.",
+    regles: ["Ne pas agir le jour d'une nouvelle importante", "Automatiser une partie de l'épargne", "Consulter son portefeuille une fois par mois au plus"],
+    actifs: ["Livrets et placements liquides", "Grandes valeurs connues", "Fonds en euros", "Or"],
+    angleMort: "L'effet du temps et du réinvestissement, qui récompense l'inaction.",
+    modele: { nom: "L'épargne financière des ménages français", desc: "Dépôts, livrets et fonds en euros représentent l'essentiel des placements financiers des ménages (Banque de France, fin 2025)." },
+    alloc: A({ MON: 40, GOVC: 10, IG: 10, ACTD: 25, IMMO: 10, OR: 5 }),
+    facteurs: { value: 0, qualite: 1, croissance: 0, momentum: 1, faibleVol: 1, dividende: 1, taille: -2 },
+    note: "La poche actions se concentre sur les grandes valeurs les plus médiatisées, avec un fort biais domestique.",
+    gardeFou: "Programmer des versements mensuels automatiques et s'interdire toute vente dans les 48 heures suivant une forte baisse.",
+    esprit: "L'épargnant informé"
+  },
+  OLAD: {
+    nom: "Le Chasseur de décotes",
+    devise: "Le meilleur moment pour acheter, c'est quand personne ne veut vendre plus bas.",
+    forces: ["Analyse approfondie et indépendance d'esprit", "Achats au maximum du pessimisme", "Potentiel de forte surperformance"],
+    biais: ["Entêtement face aux faits contraires", "Biais de confirmation", "Concentration excessive"],
+    danger: "Une thèse fausse tenue trop longtemps : la décote se creuse et votre conviction aussi.",
+    regles: ["Écrire, pour chaque position, ce qui invaliderait la thèse", "Plafonner chaque ligne à 5 %", "Faire relire ses thèses par un contradicteur"],
+    actifs: ["Petites capitalisations décotées", "Situations spéciales (restructurations, scissions)", "Dette à haut rendement décotée", "Marchés émergents délaissés"],
+    angleMort: "Les grandes valeurs de croissance chères mais durablement gagnantes.",
+    modele: { nom: "Les primes value et taille de Fama et French (1992)", desc: "Les actions bon marché et les petites capitalisations ont historiquement offert une prime de rendement, au prix de longues traversées du désert." },
+    alloc: A({ MON: 5, GOVC: 5, HY: 10, ACTD: 30, ACTE: 10, SMALL: 25, IMMO: 5, OR: 5, PRIV: 5 }),
+    facteurs: { value: 2, qualite: 0, croissance: -2, momentum: -2, faibleVol: 0, dividende: 1, taille: 2 },
+    note: "La poche actions est fortement inclinée vers les titres décotés et les petites capitalisations.",
+    gardeFou: "Diversifier sur au moins 20 positions et garder 20 % d'actions mondiales sans inclinaison de style.",
+    esprit: "John Templeton, Seth Klarman"
+  },
+  OLAT: {
+    nom: "Le Bâtisseur",
+    devise: "Le temps est l'ami des belles entreprises.",
+    forces: ["Exploitation de l'effet composé", "Faible rotation et coûts réduits", "Sélection de qualité"],
+    biais: ["Payer la qualité trop cher", "Concentration sur les mêmes grands gagnants que tout le monde", "Optimisme sur la durée des avantages concurrentiels"],
+    danger: "Une forte hausse des taux qui comprime les valorisations des valeurs de croissance, comme en 2022.",
+    regles: ["Fixer un prix maximal à payer pour chaque entreprise", "Vérifier la concentration sectorielle", "Garder une poche d'obligations courtes d'au moins 10 %"],
+    actifs: ["Actions de qualité et de croissance", "ETF actions mondiales", "Capital-investissement", "Leaders sectoriels"],
+    angleMort: "La sensibilité aux taux des valorisations élevées.",
+    modele: { nom: "La règle 90/10 de Warren Buffett", desc: "Dans sa lettre aux actionnaires de 2013 : 90 % dans un fonds indiciel d'actions à bas coût, 10 % en obligations d'État courtes." },
+    alloc: A({ GOVC: 10, ACTD: 65, ACTE: 10, SMALL: 5, PRIV: 10 }),
+    facteurs: { value: -1, qualite: 2, croissance: 1, momentum: 1, faibleVol: 0, dividende: 0, taille: -1 },
+    note: "La poche actions privilégie les entreprises de qualité à forte rentabilité, détenues longtemps.",
+    gardeFou: "Plafonner le premier secteur du portefeuille à 30 % et le premier titre à 8 %.",
+    esprit: "Warren Buffett, Philip Fisher, Terry Smith"
+  },
+  OLID: {
+    nom: "Le Visionnaire",
+    devise: "Voir aujourd'hui ce qui sera évident dans dix ans.",
+    forces: ["Vision des tendances de fond", "Tolérance à l'incertitude", "Potentiel de gains asymétriques"],
+    biais: ["Surconfiance", "Concentration extrême", "Récit plus fort que la valorisation"],
+    danger: "Un resserrement du crédit qui assèche le financement des entreprises jeunes et fait chuter les valorisations de 70 %.",
+    regles: ["Dimensionner chaque pari pour pouvoir le perdre en entier", "Garder un socle diversifié qui ne dépend d'aucune vision", "Revoir chaque thèse avec des faits mesurables"],
+    actifs: ["Capital-risque et non coté", "Valeurs technologiques émergentes", "Petites capitalisations innovantes", "Crypto-actifs"],
+    angleMort: "La valorisation : une bonne idée peut être un mauvais investissement.",
+    modele: { nom: "Le modèle des fonds de dotation (David Swensen, Yale)", desc: "Une large part d'actifs non cotés et de stratégies alternatives, rendue possible par un horizon très long et l'absence de besoin de liquidité." },
+    alloc: A({ MON: 5, GOVC: 5, ACTD: 25, ACTE: 10, SMALL: 10, IMMO: 5, PRIV: 30, ALT: 5, CRYPTO: 5 }),
+    facteurs: { value: -2, qualite: 0, croissance: 2, momentum: 1, faibleVol: -2, dividende: -2, taille: 1 },
+    note: "Le non coté est majoritairement du capital-risque et du capital-développement.",
+    gardeFou: "Limiter le non coté à 20 % tant que votre patrimoine n'est pas durablement à l'abri d'un besoin de liquidité.",
+    esprit: "David Swensen, Georges Doriot"
+  },
+  OLIT: {
+    nom: "Le Thématique",
+    devise: "Les grandes histoires font les grandes performances.",
+    forces: ["Lecture des grandes tendances", "Enthousiasme et engagement", "Horizon long"],
+    biais: ["Biais narratif", "Entrée en fin de cycle, quand le thème est déjà populaire", "Recoupements multiples des mêmes valeurs"],
+    danger: "L'éclatement d'une bulle thématique : le thème avait raison, mais le prix payé était trop élevé.",
+    regles: ["Vérifier ce que contient réellement chaque fonds thématique", "Limiter chaque thème à 10 % du portefeuille", "Acheter progressivement, jamais au pic de médiatisation"],
+    actifs: ["ETF thématiques (intelligence artificielle, énergie, santé)", "Valeurs technologiques", "Infrastructures de la transition", "Actions émergentes de croissance"],
+    angleMort: "Les secteurs ennuyeux et peu médiatisés, souvent mieux valorisés.",
+    modele: { nom: "L'approche cœur-satellite", desc: "Un cœur indiciel diversifié, entouré de satellites thématiques qui portent les convictions." },
+    alloc: A({ MON: 5, GOVC: 5, IG: 5, ACTD: 55, ACTE: 10, SMALL: 10, IMMO: 2, PRIV: 5, CRYPTO: 3 }),
+    facteurs: { value: -2, qualite: 0, croissance: 2, momentum: 2, faibleVol: -1, dividende: -1, taille: 0 },
+    note: "Environ la moitié de la poche actions est investie en fonds thématiques ; le reste forme le cœur indiciel.",
+    gardeFou: "Ramener les satellites thématiques à 25 % du portefeuille et garder un cœur indiciel d'au moins 40 %.",
+    esprit: "Les gérants thématiques"
+  },
+  OCAD: {
+    nom: "Le Stratège macro",
+    devise: "Les marchés suivent l'économie, avec un temps de retard.",
+    forces: ["Lecture macroéconomique", "Pensée en scénarios", "Diversification par classes d'actifs"],
+    biais: ["Avoir raison trop tôt", "Surconfiance dans ses prévisions", "Négligence du risque de calendrier"],
+    danger: "Un marché qui reste irrationnel plus longtemps que vous ne restez solvable.",
+    regles: ["Associer chaque position à un horizon et un déclencheur", "Limiter la perte maximale par idée", "Distinguer la thèse et le moment d'entrée"],
+    actifs: ["Obligations d'État et paris de taux", "Obligations indexées sur l'inflation", "Or et matières premières", "Fonds de stratégie macro"],
+    angleMort: "La puissance des tendances qui durent plus longtemps que les fondamentaux ne le justifient.",
+    modele: { nom: "Les fonds global macro", desc: "Des positions directionnelles sur toutes les classes d'actifs, construites à partir de scénarios économiques." },
+    alloc: A({ MON: 15, GOVC: 5, GOVL: 15, INFL: 10, HY: 5, ACTD: 15, ACTE: 10, OR: 10, MATP: 5, ALT: 10 }),
+    facteurs: { value: 1, qualite: 0, croissance: 0, momentum: 0, faibleVol: 0, dividende: 0, taille: 0 },
+    note: "L'allocation représente une position moyenne ; dans la pratique, elle varie fortement selon le scénario retenu.",
+    gardeFou: "Plafonner à 2 % du portefeuille la perte acceptable par idée, et couper sans débat.",
+    esprit: "George Soros, Stanley Druckenmiller"
+  },
+  OCAT: {
+    nom: "Le Systématique",
+    devise: "Les règles d'abord, les émotions jamais.",
+    forces: ["Discipline et absence d'émotion", "Exploitation des tendances", "Décorrélation en période de crise"],
+    biais: ["Surajustement sur le passé", "Stratégies trop répandues", "Confiance aveugle dans le modèle"],
+    danger: "Un changement de régime que le modèle n'a jamais vu dans ses données historiques.",
+    regles: ["Tester les modèles hors échantillon", "Diversifier les signaux et les horizons", "Prévoir une règle d'arrêt si le modèle dérive"],
+    actifs: ["Stratégies de suivi de tendance", "ETF factoriels", "Contrats à terme diversifiés", "Stratégies quantitatives"],
+    angleMort: "Ce que les données ne contiennent pas encore.",
+    modele: { nom: "Le suivi de tendance et l'investissement factoriel", desc: "Value et momentum fonctionnent sur toutes les classes d'actifs (Asness, Moskowitz et Pedersen, 2013) ; le suivi de tendance a gagné en 2008 et en 2022." },
+    alloc: A({ MON: 10, GOVC: 10, GOVL: 10, INFL: 5, ACTD: 30, ACTE: 5, OR: 5, MATP: 5, ALT: 20 }),
+    facteurs: { value: 1, qualite: 1, croissance: 0, momentum: 2, faibleVol: 1, dividende: 0, taille: 0 },
+    note: "Les stratégies alternatives sont des fonds de suivi de tendance ; la poche actions est construite par facteurs.",
+    gardeFou: "Ne pas dépasser 15 % sur une seule stratégie quantitative.",
+    esprit: "Les Turtle Traders, les fonds de suivi de tendance"
+  },
+  OCID: {
+    nom: "Le Corsaire",
+    devise: "L'occasion ne se présente qu'une fois.",
+    forces: ["Réactivité et flair", "Goût des situations atypiques", "Indépendance d'esprit"],
+    biais: ["Illusion de contrôle", "Effet casino après une série de gains", "Positions trop grosses"],
+    danger: "Une série de gains qui pousse à augmenter les mises juste avant un retournement.",
+    regles: ["Fixer une taille maximale par opération", "Tenir un journal de chaque décision", "Mettre de côté une partie de chaque gain"],
+    actifs: ["Valeurs en retournement", "Situations spéciales", "Obligations à haut rendement", "Matières premières"],
+    angleMort: "La répétition : un gain isolé ne valide pas une méthode.",
+    modele: { nom: "La stratégie « barbell » de Nassim Taleb", desc: "Une très large part en actifs très sûrs, une petite part en paris très risqués, et rien entre les deux." },
+    alloc: A({ MON: 30, GOVC: 25, HY: 5, ACTD: 10, SMALL: 10, OR: 5, MATP: 5, ALT: 5, CRYPTO: 5 }),
+    facteurs: { value: 1, qualite: -1, croissance: 0, momentum: -1, faibleVol: -2, dividende: 0, taille: 2 },
+    note: "Les deux extrémités de l'haltère : 55 % très sûrs, environ 30 % en paris risqués, peu de placements intermédiaires.",
+    gardeFou: "Plafonner la partie spéculative à 20 % et ne jamais y réinvestir plus de la moitié des gains.",
+    esprit: "Nassim Taleb, les spéculateurs contrariens"
+  },
+  OCIT: {
+    nom: "Le Surfeur",
+    devise: "La tendance est votre amie, jusqu'à ce qu'elle ne le soit plus.",
+    forces: ["Réactivité", "Exploitation du momentum", "Ouverture aux nouveautés"],
+    biais: ["Peur de rater le mouvement", "Effet troupeau", "Levier excessif"],
+    danger: "Le retournement brutal d'une tendance très suivie, quand tout le monde veut sortir en même temps.",
+    regles: ["Définir un seuil de sortie avant chaque entrée", "S'interdire le levier", "Plafonner la poche spéculative"],
+    actifs: ["Valeurs en forte dynamique", "Valeurs technologiques", "Crypto-actifs", "ETF thématiques"],
+    angleMort: "Le risque de perte permanente lors des retournements.",
+    modele: { nom: "Le momentum (Jegadeesh et Titman, 1993)", desc: "Les titres qui ont le plus monté sur trois à douze mois continuent en moyenne de surperformer, avant des retournements brutaux." },
+    alloc: A({ MON: 10, ACTD: 45, ACTE: 10, SMALL: 15, MATP: 5, CRYPTO: 15 }),
+    facteurs: { value: -2, qualite: -1, croissance: 2, momentum: 2, faibleVol: -2, dividende: -2, taille: 1 },
+    note: "La poche actions suit les titres en plus forte dynamique ; elle tourne vite.",
+    gardeFou: "Porter les obligations et le monétaire à 30 % et limiter les crypto-actifs à 5 %.",
+    esprit: "Jesse Livermore, Nicolas Darvas"
+  }
+};
+
+</script>
+<script>
+/* Descriptions longues — famille des Patrimoniaux (SL)
+   © QuidHabes — Alexandre Hezez, 2026 */
+window.TEXTES = window.TEXTES || {};
+
+window.TEXTES.SLAD = {
+  qui: [
+    "Vous êtes de ceux qui lisent les notes de bas de page. Quand un titre recule de 30 % et que les commentateurs passent à autre chose, quelque chose s'allume chez vous : l'envie de comprendre si le marché a raison, ou s'il vient de vous offrir un cadeau. Vous ne cherchez pas l'action qui va doubler. Vous cherchez celle qui ne peut presque plus vous faire perdre d'argent, et qui a de bonnes chances de remonter quand les autres se seront calmés.",
+    "Votre plaisir est intellectuel avant d'être financier. Calculer une valeur d'actif net, repérer une holding qui cote 40 % sous la somme de ses participations, trouver une entreprise ennuyeuse qui verse un dividende régulier depuis vingt ans : voilà ce qui vous satisfait. Vous avez peu de goût pour les récits, beaucoup pour les bilans. Et vous savez attendre, parfois des années, que le prix rejoigne la valeur."
+  ],
+  decision: "Vous décidez avec un tableur et une marge de sécurité. Votre première question n'est jamais « combien puis-je gagner ? », mais « combien puis-je perdre si je me trompe ? ». Vous comparez le prix à des grandeurs tangibles : actifs, flux de trésorerie, dividendes. Une hausse de cours vous rend méfiant, une baisse vous rend attentif. Les prévisions de croissance à dix ans vous semblent suspectes ; ce qui existe déjà dans les comptes vous rassure.",
+  meilleur: "Votre moment, c'est le printemps 2009. Des industriels solides cotaient sous leurs fonds propres, des foncières se négociaient avec 50 % de décote sur leurs actifs, et chacun annonçait la fin du système financier. Vous avez acheté, sans enthousiasme mais avec méthode. Deux ans plus tard, vos décotes s'étaient refermées pendant que d'autres attendaient encore « que la visibilité revienne ».",
+  pire: "Votre épreuve, c'est la décennie 2010. De 2010 à 2020, le style value a sous-performé presque sans interruption : les valeurs de croissance chères sont devenues plus chères, et les valeurs bon marché sont restées bon marché. Vous aviez raison sur les chiffres et tort sur le calendrier. Le plus dur n'a pas été de perdre de l'argent, mais de voir les autres en gagner beaucoup avec des raisonnements que vous jugiez fragiles.",
+  regard: "Votre entourage vous trouve prudent, parfois rabat-joie. Vous êtes celui qui demande « à quel prix ? » quand tout le monde parle d'une entreprise formidable. En comité, on vous respecte pour votre rigueur et on vous redoute un peu pour vos questions. Personne ne vous accuse d'avoir cédé à une mode, et c'est votre fierté.",
+  actifsPourquoi: "Votre allocation part du modèle de l'investisseur « entreprenant » décrit par Benjamin Graham : entre 25 % et 75 % d'actions, mais des actions achetées sous leur valeur. D'où une poche actions modérée (45 %), inclinée vers la value et les petites capitalisations délaissées, une base obligataire solide, un peu d'immobilier et d'or comme réserves de valeur tangibles. Vous aimez les actifs qu'on peut évaluer ; vous fuyez ceux dont le prix ne repose que sur une promesse.",
+  pertes: "Votre piège porte un nom : la value trap, l'action bon marché qui le reste parce que l'entreprise décline vraiment. Vous êtes aussi exposé à l'ancrage : vous gardez en tête le prix auquel vous avez acheté, ou une valeur historique, et vous refusez de constater qu'elle a changé. Les travaux de Shefrin et Statman (1985) ont montré que les investisseurs gardent trop longtemps leurs positions perdantes ; chez vous, ce réflexe se déguise en patience.",
+  gardeFouTexte: "Plafonnez chaque titre décoté à 5 % du portefeuille et gardez au moins 15 % d'actions mondiales indicielles. La première règle limite le coût d'une erreur de diagnostic. La seconde vous garantit de participer aux cycles de croissance que votre méthode vous fera presque toujours manquer.",
+  ressemblent: "Benjamin Graham bien sûr, qui a codifié la marge de sécurité. Walter Schloss, qui a battu le marché pendant près de cinquante ans en achetant des titres délaissés, sans chercher à rencontrer les dirigeants. Et, dans sa première manière, le jeune Warren Buffett, avant que Charlie Munger ne le convertisse à la qualité.",
+  comite: "Votre meilleur allié est le Rentier (SLIT) : il partage votre prudence mais vous oblige à penser revenu et simplicité. Votre contradicteur naturel est le Surfeur (OCIT), qui achète ce qui monte quand vous achetez ce qui baisse ; il vous agace, mais il vous rappelle que les tendances peuvent durer bien plus longtemps que vos modèles ne le prévoient."
+};
+
+window.TEXTES.SLAT = {
+  qui: [
+    "Vous ne cherchez pas à battre le marché. Vous cherchez à ne pas vous battre contre lui. Votre conviction profonde est que la plupart des investisseurs perdent de l'argent en voulant être plus malins que les autres, et que la meilleure stratégie est souvent la plus simple : diversifier largement, payer peu de frais, et ne rien toucher.",
+    "Vous pensez en allocation, pas en titres. Une action particulière vous intéresse moins que l'équilibre de l'ensemble. Vous avez probablement un tableau qui montre la répartition de votre patrimoine, avec des cibles et des bornes de tolérance. Quand une classe d'actifs s'écarte trop de sa cible, vous rééquilibrez. Mécaniquement. Sans état d'âme."
+  ],
+  decision: "Vous décidez par des règles que vous avez écrites à froid. Vous vous méfiez de vos propres émotions et de celles des marchés, alors vous les avez remplacées par un processus. Les prévisions vous laissent sceptique ; les frais de gestion, en revanche, vous font réagir. Vous savez que 1 % de frais par an coûte un quart du capital final sur trente ans, et ce genre de calcul vous convainc plus qu'une belle histoire.",
+  meilleur: "Votre moment, c'est mars 2020. Les actions ont perdu un tiers de leur valeur en cinq semaines. Vous n'avez pas paniqué : vous avez rééquilibré, ce qui vous a conduit à acheter des actions au plus bas, simplement parce que votre règle le demandait. Six mois plus tard, votre portefeuille avait retrouvé son niveau, et vous n'aviez pris aucune décision difficile.",
+  pire: "Votre épreuve, c'est 2022. Pour la première fois depuis des décennies, actions et obligations ont baissé ensemble : les obligations d'État de la zone euro ont perdu plus de 18 % sur l'année. Votre diversification, conçue pour que les obligations amortissent la chute des actions, n'a pas fonctionné. Vous avez découvert qu'un modèle peut être juste pendant quarante ans et faux une année entière.",
+  regard: "On vous trouve sérieux, organisé, un peu prévisible. Vos amis qui spéculent vous trouvent ennuyeux jusqu'à la crise suivante, où ils viennent vous demander conseil. En comité, vous êtes la voix de la méthode et du coût. Vous ramenez les discussions brillantes à une question simple : est-ce que cela change l'allocation de long terme ?",
+  actifsPourquoi: "Votre allocation part du portefeuille indiciel défendu par John Bogle, fondateur de Vanguard : quelques fonds à bas coût, actions mondiales et obligations. Vous la complétez d'obligations indexées sur l'inflation et d'une touche d'or et d'immobilier, la leçon de 2022. La poche actions ne penche vers aucun style : vous détenez le marché, tout le marché.",
+  pertes: "Vous perdez rarement de l'argent par excès. Vous en perdez par excès de confiance dans le modèle : des corrélations calculées sur le passé, une diversification qui suppose que les obligations protègent toujours. Votre autre risque est plus discret : à force de ne jamais dévier, vous pouvez ignorer un changement de régime, comme le retour de l'inflation, jusqu'à ce qu'il soit dans vos comptes.",
+  gardeFouTexte: "Portez à 10 % au moins la part des actifs qui ne dépendent ni des taux ni des bénéfices : or, obligations indexées, immobilier. Ce n'est pas un pari, c'est une assurance contre le seul scénario que votre modèle traite mal, celui où l'inflation fait baisser actions et obligations en même temps.",
+  ressemblent: "John Bogle, qui a démocratisé la gestion indicielle. Burton Malkiel, auteur d'Une marche au hasard dans Wall Street. Et les grands fonds de pension nordiques, qui gèrent des centaines de milliards avec des règles d'allocation publiques et presque immuables.",
+  comite: "Votre meilleur allié est le Patriarche (SLID) : il partage votre horizon mais apporte le goût des actifs réels que votre modèle sous-pondère. Votre contradicteur est le Corsaire (OCID), qui croit aux coups et à l'instinct ; il vous irrite, mais il vous rappelle que les occasions exceptionnelles existent, même si elles sont rares."
+};
+
+window.TEXTES.SLID = {
+  qui: [
+    "Vous raisonnez en générations. Votre horizon n'est pas l'année prochaine, ni même la retraite : c'est ce que vous laisserez. Vous faites confiance à ce qui se touche, se visite, se transmet. Un immeuble, une forêt, des terres, l'entreprise familiale, quelques pièces d'or dans un coffre. Ces actifs ont une qualité que les écrans n'ont pas : ils existent encore quand les marchés ferment.",
+    "Vous n'êtes pas un homme ou une femme de tableur. Vous avez plutôt du flair : vous savez reconnaître un bel emplacement, une affaire bien tenue, un vendeur pressé. Vous achetez quand les autres doutent, et vous ne vendez presque jamais. Pour vous, la meilleure décision d'investissement est souvent de ne rien faire pendant vingt ans."
+  ],
+  decision: "Vous décidez à l'instinct, nourri d'expérience. Vous visitez, vous parlez aux gens, vous sentez si une affaire est saine. Les cours de bourse vous paraissent abstraits et nerveux ; un loyer qui tombe chaque mois vous paraît réel. Vous vous fiez davantage à votre réseau, à votre notaire ou à un ami chef d'entreprise qu'aux notes d'analystes.",
+  meilleur: "Votre moment, ce sont les années 1998 à 2007 en France. Les prix de l'immobilier ont plus que doublé, et ceux qui avaient acheté pendant la morosité du milieu des années 1990 ont vu leur patrimoine se transformer. Vous n'aviez rien prévu ; vous aviez simplement acheté du concret quand personne n'en voulait, et attendu.",
+  pire: "Votre épreuve, c'est le jour où il faut de la liquidité. Une succession à régler, un associé qui veut sortir, une hausse des taux comme en 2022-2023 qui fige le marché immobilier. Vos actifs valent beaucoup sur le papier, mais ne se vendent qu'avec une décote importante et après des mois. Vous découvrez que la richesse et la liquidité sont deux choses différentes.",
+  regard: "On vous voit comme un pilier, solide et un peu secret. Votre famille vous fait confiance ; vos amis financiers vous trouvent concentré et peu diversifié. En comité, vous êtes celui qui rappelle que les actifs réels survivent aux crises monétaires, et que la bourse n'est qu'une façon parmi d'autres de détenir des entreprises.",
+  actifsPourquoi: "Votre allocation reflète, en plus diversifié, le patrimoine type des ménages français : selon l'Insee, l'immobilier en représente environ 62 %. D'où une large place pour l'immobilier (40 %), l'or (10 %) et les participations non cotées dans des entreprises familiales (10 %). La poche actions cotées est réduite et fortement domestique, inclinée vers les entreprises de dividende que vous connaissez.",
+  pertes: "Votre piège principal est la familiarité. Les travaux de Huberman (2001) ont montré que les investisseurs surpondèrent ce qu'ils connaissent : leur région, leur employeur, leur secteur. Chez vous, cela se traduit par une concentration géographique et sectorielle que vous ne voyez plus. Le second piège est l'illiquidité : un patrimoine impossible à mobiliser rapidement peut obliger à vendre au pire moment.",
+  gardeFouTexte: "Ramenez l'immobilier sous 30 % de votre patrimoine investissable et portez les actions cotées internationales à au moins 25 %. Gardez aussi une réserve liquide couvrant deux ans de besoins. Vous ne renoncez pas à vos convictions : vous vous donnez les moyens de ne jamais devoir vendre un bien dans l'urgence.",
+  ressemblent: "Les grandes familles industrielles européennes, qui détiennent leurs entreprises depuis plusieurs générations. Les family offices qui privilégient l'immobilier et les participations directes. Et, plus près de chez vous, ce grand-parent qui avait acheté des terres et un immeuble, et qui n'a jamais regardé un cours de bourse.",
+  comite: "Votre meilleur allié est l'Architecte (SLAT) : il partage votre patience et vous apporte la diversification qui vous manque. Votre contradicteur est le Systématique (OCAT), qui ne croit qu'aux données et change de position chaque mois ; il vous paraît sans racines, mais il vous rappelle que les tendances de prix finissent aussi par toucher les actifs réels."
+};
+
+window.TEXTES.SLIT = {
+  qui: [
+    "Vous voulez que votre argent travaille pour vous, pas qu'il vous empêche de dormir. Votre objectif est clair : un revenu régulier, un capital préservé, et le moins de surprises possible. Vous n'avez pas besoin de battre le marché ; vous avez besoin de savoir ce qui tombera le mois prochain.",
+    "Vous faites confiance aux solutions éprouvées. Le fonds en euros, les livrets, une SCPI, quelques obligations, éventuellement de grandes entreprises qui versent un dividende depuis longtemps. Ce sont des placements que tout le monde connaît, que votre banquier recommande, et qui ont traversé les crises sans drame. Vous ne cherchez pas l'originalité : vous cherchez la tranquillité."
+  ],
+  decision: "Vous décidez par habitude et par confiance. Vous écoutez votre conseiller, vous regardez ce que font les personnes de votre entourage, vous choisissez ce qui a fait ses preuves. Les produits complexes vous inquiètent, les promesses de rendement élevé vous paraissent suspectes, et vous avez raison sur ce dernier point plus souvent qu'on ne le croit.",
+  meilleur: "Votre moment, ce sont les années 2000 et 2010. Le fonds en euros rapportait encore 4 % au début de la période, sans risque apparent, pendant que la bourse traversait deux krachs. Vous avez dormi tranquille pendant que d'autres perdaient la moitié de leur capital, et votre patrimoine a progressé sans à-coups.",
+  pire: "Votre épreuve, c'est l'inflation de 2022. Les prix ont augmenté de près de 6 % en France, plus de 10 % au pic dans la zone euro, et votre fonds en euros rapportait autour de 2 %. Votre relevé affichait une hausse ; votre pouvoir d'achat, lui, reculait. C'est le piège le plus silencieux qui soit : une perte qui ne se voit pas sur le relevé.",
+  regard: "On vous trouve raisonnable, fiable, peu aventureux. Vos amis plus audacieux vous taquinent sur vos livrets ; vous les taquinez en retour à chaque krach. En comité, vous êtes la voix du bon sens : ce placement, l'expliquerait-on à sa grand-mère ? Si la réponse est non, vous passez votre tour.",
+  actifsPourquoi: "Votre allocation part du modèle de l'investisseur « défensif » de Benjamin Graham : des obligations de qualité et des grandes valeurs à dividende régulier, avec au moins 25 % d'actions. Elle reflète aussi la structure de l'épargne des Français, dominée par les livrets et le fonds en euros (Banque de France). D'où un monétaire important (25 %), une poche obligataire de qualité, de l'immobilier de rendement et 20 % d'actions inclinées vers le dividende et la faible volatilité.",
+  pertes: "Vous perdez de l'argent en n'en perdant jamais. Le biais du statu quo vous fait conserver des placements dont le rendement réel est devenu négatif. L'illusion monétaire, décrite par les économistes depuis Irving Fisher, vous fait juger un placement sur son rendement affiché plutôt qu'après inflation et fiscalité. Sur vingt ans, l'écart entre 2 % et 5 % par an représente presque un doublement du capital.",
+  gardeFouTexte: "Limitez le monétaire à 15 % et visez au moins 25 % d'actions dès que votre horizon dépasse huit ans. Faites-le progressivement, par versements programmés, pour ne pas craindre le mauvais moment. C'est la seule façon de protéger votre pouvoir d'achat sur la durée.",
+  ressemblent: "Benjamin Graham dans ses conseils aux investisseurs défensifs. Les épargnants des générations qui ont connu les fortes inflations et qui ont appris à se méfier des promesses. Et, d'une certaine manière, les assureurs, qui gèrent votre fonds en euros avec la même priorité : ne jamais décevoir.",
+  comite: "Votre meilleur allié est le Gardien de valeur (SLAD) : il partage votre prudence mais vous apprend à acheter des actions quand elles sont bon marché. Votre contradicteur est le Stratège macro (OCAD), qui parie sur les taux et les devises ; il vous paraît imprudent, mais c'est lui qui vous rappelle, chiffres à l'appui, que l'inflation est votre premier ennemi."
+};
+
+</script>
+<script>
+/* Descriptions longues — famille des Tacticiens (SC)
+   © QuidHabes — Alexandre Hezez, 2026 */
+window.TEXTES = window.TEXTES || {};
+
+window.TEXTES.SCAD = {
+  qui: [
+    "Vous voyez les marchés comme un ensemble de prix qui devraient être cohérents entre eux et qui, parfois, ne le sont pas. Une obligation convertible qui cote moins cher que ses composantes, deux titres d'une même société qui divergent, une offre publique d'achat dont l'écart ne reflète pas le risque réel : c'est là que vous travaillez. Vous ne pariez pas sur la direction du marché. Vous pariez sur le retour à la logique.",
+    "Votre plaisir est celui de l'ingénieur. Vous aimez les gains petits, nombreux, calculés, qui s'additionnent sans bruit. Une grande victoire spectaculaire vous intéresse moins qu'une courbe de performance régulière. Vous détestez l'idée de dépendre d'une prévision ; vous préférez construire des positions qui gagnent quel que soit le scénario."
+  ],
+  decision: "Vous décidez avec des modèles et des probabilités. Vous calculez une espérance de gain, une perte maximale, un ratio entre les deux. Vous testez vos hypothèses sur l'historique. Une opportunité sans justification chiffrée n'en est pas une pour vous. Votre force est de garder la tête froide quand les prix s'écartent : là où d'autres voient du chaos, vous voyez un écart qui finira par se refermer.",
+  meilleur: "Votre moment, ce sont les années de marchés calmes comme 2017 : volatilité au plus bas, écarts réguliers, stratégies de portage et d'arbitrage qui rapportent mois après mois. Vos performances sont modestes mais d'une régularité que les investisseurs directionnels vous envient.",
+  pire: "Votre épreuve porte un nom célèbre : Long-Term Capital Management, en 1998. Un fonds qui comptait deux prix Nobel parmi ses associés, qui arbitrait des écarts minuscules avec un levier considérable, a failli faire tomber le système financier quand tous les écarts se sont élargis en même temps. Votre cauchemar n'est pas de vous tromper sur une position, c'est que toutes vos positions se trompent ensemble, au moment où vous ne pouvez plus attendre.",
+  regard: "On vous trouve brillant, un peu froid, difficile à suivre quand vous expliquez vos stratégies. Les investisseurs classiques ne comprennent pas toujours comment vous gagnez de l'argent ; vous ne comprenez pas toujours comment ils supportent de dépendre autant de la direction du marché. En comité, vous êtes celui qui chiffre les risques que les autres décrivent avec des mots.",
+  actifsPourquoi: "Votre allocation part de la parité des risques, popularisée par l'All Weather de Ray Dalio : chaque moteur économique (croissance, inflation, taux) pèse le même risque dans le portefeuille. D'où une forte base obligataire diversifiée (60 %, dont des obligations indexées), une poche actions limitée, un peu d'or et de matières premières, et 10 % de stratégies de valeur relative. En 2008, votre allocation aurait limité la perte à quelques pourcents, l'une des plus faibles des seize profils, et c'est voulu.",
+  pertes: "Votre risque est la queue de distribution : l'événement rare que vos modèles jugent presque impossible et qui arrive pourtant. Le second risque est le levier. Quand on gagne peu par opération, la tentation est grande d'emprunter pour amplifier, et c'est le levier, pas l'erreur d'analyse, qui transforme un mauvais mois en catastrophe. LTCM avait raison sur la plupart de ses écarts ; il n'a simplement pas pu attendre qu'ils se referment.",
+  gardeFouTexte: "Testez chaque stratégie sur 2008 et sur mars 2020 avant de l'augmenter, et ne vous endettez jamais pour l'amplifier. Gardez une réserve de liquidités suffisante pour tenir vos positions quand les écarts s'élargissent : c'est elle qui vous permettra d'avoir raison à la fin.",
+  ressemblent: "Edward Thorp, mathématicien qui a battu le blackjack avant de battre le marché avec l'arbitrage de bons de souscription. Les gérants d'arbitrage de fusions et de convertibles. Et, dans une version plus macro, les promoteurs de la parité des risques chez Bridgewater.",
+  comite: "Votre meilleur allié est le Vigilant (SCIT) : il partage votre prudence et vous apporte l'information de terrain que vos modèles ignorent. Votre contradicteur est le Thématique (OLIT), qui achète des récits à long terme ; il vous paraît naïf, mais il vous rappelle que les plus grandes créations de valeur ne se trouvent pas dans les écarts de prix."
+};
+
+window.TEXTES.SCAT = {
+  qui: [
+    "Vous ne prétendez pas prévoir l'avenir. Vous prétendez réagir mieux que les autres quand il arrive. Votre méthode : des règles claires, des signaux objectifs, des seuils de protection définis à l'avance. Quand la tendance est favorable, vous êtes investi. Quand elle se retourne, vous réduisez. Sans débat.",
+    "Vous avez fait la paix avec une idée que beaucoup refusent : vous ne vendrez jamais au plus haut et n'achèterez jamais au plus bas. Vous acceptez de rater le début d'une hausse et le début d'une baisse, à condition d'éviter l'essentiel des grandes chutes. Pour vous, la gestion du risque n'est pas une contrainte : c'est le métier."
+  ],
+  decision: "Vous décidez avec un tableau de bord. Moyennes mobiles, niveaux de volatilité, indicateurs de tendance : vous suivez quelques signaux simples et vous les respectez. Ce qui vous distingue, c'est que vos règles décident à votre place quand le marché devient émotionnel. Vous vous méfiez des intuitions, les vôtres comprises.",
+  meilleur: "Votre moment, c'est 2008. Un filtre de tendance aussi simple que la moyenne mobile sur dix mois, étudié par Mebane Faber en 2007, a fait sortir les investisseurs des actions dès le début de l'année, bien avant la faillite de Lehman Brothers en septembre. Pendant que le marché perdait près de 40 %, les portefeuilles pilotés de cette façon limitaient la casse à quelques pourcents.",
+  pire: "Votre épreuve, ce sont les marchés sans direction, comme le second semestre 2015 ou la fin d'année 2018. Le marché baisse, votre signal vous fait vendre, il remonte aussitôt, votre signal vous fait racheter plus haut, puis il rebaisse. Chaque aller-retour coûte un peu, et au bout de quelques mois vous avez perdu autant que si vous n'aviez rien fait, avec la frustration en plus.",
+  regard: "On vous trouve rigoureux, rassurant, un peu mécanique. Vos clients ou vos proches apprécient que vous ayez toujours un plan. En comité, vous êtes celui qui demande : quel est le signal de sortie ? Une idée sans plan de sortie vous paraît incomplète.",
+  actifsPourquoi: "Votre allocation part de l'approche tactique décrite par Mebane Faber : un portefeuille diversifié dont chaque classe d'actifs sort du marché quand son prix passe sous sa moyenne de long terme. La photographie présentée ici est une position moyenne : 35 % d'actions, une base obligataire courte, 15 % de monétaire correspondant aux positions sorties du marché, un peu d'or et 10 % de stratégies de suivi de tendance.",
+  pertes: "Vous perdez de l'argent par usure. Les études de Barber et Odean (2000) ont montré que les investisseurs qui changent souvent de positions dégradent leur performance de plusieurs points par an, en frais et en mauvais calendrier. Vos règles vous protègent mieux qu'un investisseur impulsif, mais chaque ajustement a un coût, et les couvertures accumulées pèsent lourd sur dix ans.",
+  gardeFouTexte: "Figez 50 % de votre portefeuille dans une allocation stratégique qui ne bouge jamais, hors rééquilibrage annuel. Ne pilotez que l'autre moitié. Mesurez chaque année ce que vos ajustements vous ont réellement rapporté par rapport à cette moitié immobile.",
+  ressemblent: "Mebane Faber et les adeptes de l'allocation tactique par tendance. Les gérants de fonds flexibles qui ajustent leur exposition aux actions entre 0 % et 100 %. Et les gérants de fonds à volatilité cible, qui réduisent le risque dès que les marchés s'agitent.",
+  comite: "Votre meilleur allié est la Sentinelle (SCID) : elle partage votre prudence mais repère les excès avant que vos signaux ne les confirment. Votre contradicteur est le Visionnaire (OLID), qui garde ses convictions dix ans quelles que soient les tendances ; il vous paraît imprudent, mais il vous rappelle que les plus grandes fortunes se sont faites en restant investi."
+};
+
+window.TEXTES.SCID = {
+  qui: [
+    "Vous avez un sixième sens pour les excès. Quand tout le monde est euphorique, quand les valorisations s'envolent et que votre chauffeur de taxi vous donne des conseils boursiers, une petite alarme se déclenche en vous. Vous n'attendez pas la confirmation : vous prenez vos bénéfices, vous mettez de l'argent de côté, vous attendez que l'orage passe.",
+    "Vous aimez avoir des munitions. Une trésorerie disponible n'est pas pour vous de l'argent qui dort ; c'est une option, la possibilité d'acheter quand les autres seront obligés de vendre. Vous préférez rater une partie de la fête plutôt que d'être dans la salle quand les lumières se rallument."
+  ],
+  decision: "Vous décidez à l'instinct, mais un instinct nourri d'histoire. Vous avez lu les récits des bulles passées, de la tulipe hollandaise à internet, et vous en reconnaissez les signes. Vous vous fiez à des indices qualitatifs : le ton des médias, l'enthousiasme de votre entourage, la multiplication des introductions en bourse. Les chiffres viennent confirmer, rarement initier.",
+  meilleur: "Votre moment, c'est l'année 2000. Vous aviez vendu vos valeurs technologiques à la fin de 1999, trop tôt selon vos amis, qui ont encore gagné 20 % en trois mois. Puis l'indice Nasdaq a perdu près de 80 % entre mars 2000 et octobre 2002. Votre trésorerie et votre or vous ont permis de traverser le krach sans dommage, et de racheter à des prix que vous n'espériez plus.",
+  pire: "Votre épreuve, c'est la décennie 2010. Vous avez senti des excès dès 2014, puis en 2017, puis en 2019. Les marchés ont continué de monter presque sans interruption. Chaque fois que vous avez vendu, il a fallu racheter plus haut, ou ne pas racheter du tout. Le coût de la prudence, sur une longue période haussière, est considérable, et il ne se voit pas sur un relevé : il se voit dans ce que vous n'avez pas gagné.",
+  regard: "On vous trouve prudent, parfois pessimiste. Vos amis vous appellent Cassandre pendant les hausses et viennent vous écouter pendant les baisses. En comité, vous êtes la voix qui dit « attention » quand tout le monde dit « allons-y ». Vous avez souvent raison, mais rarement au bon moment.",
+  actifsPourquoi: "Votre allocation part du Portefeuille permanent de Harry Browne : quatre quarts égaux entre actions, obligations longues, or et liquidités, pour traverser tous les régimes économiques. D'où 25 % de monétaire, 20 % d'or, 20 % d'obligations d'État longues et seulement 25 % d'actions, inclinées vers la qualité et la faible volatilité. Résultat : la perte estimée en 2008 est l'une des plus faibles des seize profils.",
+  pertes: "Votre biais est l'effet de disposition, décrit par Shefrin et Statman (1985) : vous vendez vos gagnants trop tôt. Chez vous, ce n'est pas de l'impatience, c'est de la méfiance. Le second piège est le coût d'opportunité : une trésorerie de 25 % qui rapporte 2 % pendant que les actions rapportent 8 % coûte environ 1,5 point de performance par an au portefeuille.",
+  gardeFouTexte: "Ne descendez jamais sous 25 % d'actions, même quand le marché vous paraît cher, et vendez par tiers plutôt qu'en une seule fois. Fixez à l'avance vos conditions de retour sur le marché, sinon vous ne reviendrez jamais.",
+  ressemblent: "Harry Browne et son Portefeuille permanent. Les gérants qui ont annoncé les bulles de 2000 et de 2007, souvent trop tôt. Et les investisseurs qui gardent de l'or depuis des décennies comme une assurance qu'on espère ne jamais utiliser.",
+  comite: "Votre meilleur allié est le Pilote (SCAT) : il partage votre souci de protection mais vous apporte des règles qui vous évitent de sortir trop tôt. Votre contradicteur est le Bâtisseur (OLAT), qui reste investi en toutes circonstances ; il vous paraît insouciant, mais ses résultats sur vingt ans vous rappellent que le temps passé sur le marché compte plus que le moment choisi."
+};
+
+window.TEXTES.SCIT = {
+  qui: [
+    "Vous êtes bien informé. Vous lisez la presse économique, vous suivez l'actualité des marchés, vous discutez placements avec votre entourage. Vous voulez comprendre ce qui se passe, et surtout ne pas être le dernier à réagir. Votre argent compte pour vous, et vous ne voulez pas le laisser sans surveillance.",
+    "Votre prudence est spontanée. Quand une mauvaise nouvelle tombe, votre premier réflexe est de protéger ce que vous avez. Quand une bonne nouvelle se répand, vous vous demandez si vous ne devriez pas en profiter. Cette vigilance est une qualité. Elle devient un piège quand elle se transforme en réaction à chaque titre de journal."
+  ],
+  decision: "Vous décidez en fonction de l'actualité et de votre entourage. Ce que disent les médias, ce que fait votre beau-frère, ce que recommande votre banquier pèsent dans vos choix. Vous aimez les placements connus, les grandes entreprises dont tout le monde parle, les solutions faciles à expliquer. Vous agissez vite, parfois trop.",
+  meilleur: "Votre moment, c'est le début de 2020. Les premières nouvelles de Chine vous ont inquiété avant que les marchés ne réagissent. Vous avez réduit vos positions fin février, avant le pire de la chute. Votre réactivité vous a protégé d'une baisse de plus de 30 % en cinq semaines.",
+  pire: "Votre épreuve, c'est la suite de 2020. Vous aviez vendu au bon moment, mais vous n'avez pas osé racheter : les nouvelles restaient terribles. Les marchés ont pourtant rebondi dès le 23 mars et retrouvé leurs sommets avant la fin de l'été. Vous êtes revenu en septembre, plus haut que votre prix de vente. Avoir raison sur la baisse ne sert à rien si l'on rate la reprise.",
+  regard: "On vous trouve informé, curieux, un peu anxieux. Vous êtes la personne qui envoie l'article du jour dans le groupe familial. En comité, vous apportez la température du marché et le ressenti des épargnants, une information précieuse que les modèles ne captent pas.",
+  actifsPourquoi: "Votre allocation reflète la structure de l'épargne des Français telle que la mesure la Banque de France : dépôts, livrets et fonds en euros en représentent l'essentiel. D'où 40 % de monétaire, une poche obligataire courte, un peu d'immobilier et d'or, et 25 % d'actions concentrées sur les grandes valeurs connues, avec un fort biais domestique.",
+  pertes: "Votre piège est de vendre au plus bas et de racheter au plus haut. Kahneman et Tversky (1979) ont montré qu'une perte pèse environ deux fois plus lourd qu'un gain équivalent : chez vous, cette aversion aux pertes s'active à chaque mauvaise nouvelle. Les travaux de Barber et Odean montrent aussi que les investisseurs particuliers achètent les titres qui attirent l'attention médiatique, souvent après la hausse.",
+  gardeFouTexte: "Programmez des versements mensuels automatiques, et interdisez-vous toute vente dans les 48 heures qui suivent une forte baisse. Consultez votre portefeuille une fois par mois, pas davantage. Vous restez informé ; vous cessez simplement de laisser l'actualité décider à votre place.",
+  ressemblent: "La majorité des épargnants, honnêtement. C'est le profil le plus répandu, et ce n'est pas un défaut : c'est le point de départ. Les meilleurs investisseurs particuliers sont souvent d'anciens Vigilants qui ont appris à automatiser leurs décisions.",
+  comite: "Votre meilleur allié est l'Arbitragiste (SCAD) : il partage votre prudence et vous apporte la méthode qui vous évite de réagir à chaud. Votre contradicteur est le Chasseur de décotes (OLAD), qui achète précisément ce que la presse condamne ; il vous paraît téméraire, mais il vous apprend que les pires nouvelles font souvent les meilleurs prix."
+};
+
+</script>
+<script>
+/* Descriptions longues — famille des Conquérants (OL)
+   © QuidHabes — Alexandre Hezez, 2026 */
+window.TEXTES = window.TEXTES || {};
+
+window.TEXTES.OLAD = {
+  qui: [
+    "Vous lisez les pages que les autres sautent. Quand un titre chute de 40 % et que plus personne n'en parle, votre curiosité s'éveille au moment exact où celle des autres s'éteint. Vous ouvrez le rapport annuel, vous refaites le calcul de l'actif net, vous cherchez la raison pour laquelle le marché se trompe, et vous la trouvez souvent.",
+    "Vous n'avez pas peur d'être seul. Vous en tirez même une certaine satisfaction. Une restructuration complexe, une scission que personne ne comprend, une petite capitalisation que les analystes ne suivent plus : voilà votre terrain de chasse. Vous acceptez la volatilité, l'attente et l'incompréhension de votre entourage, parce que vous savez que les meilleures affaires se font là où personne ne regarde."
+  ],
+  decision: "Vous décidez par l'analyse, et vous allez loin. Vous ne vous contentez pas d'un ratio : vous reconstituez la valeur, ligne par ligne. Votre conviction se forme lentement mais devient très forte. Une fois votre thèse établie, le consensus contraire ne vous ébranle pas ; il vous conforte plutôt. C'est votre plus grande force, et parfois votre plus grande faiblesse.",
+  meilleur: "Votre moment, c'est mars 2009. Des banques et des industriels se vendaient sous leur valeur de liquidation, les obligations à haut rendement offraient plus de 20 % de rendement, la presse annonçait la fin du système. Vous achetiez seul, et vous avez multiplié certaines positions par trois ou quatre dans les deux ans qui ont suivi.",
+  pire: "Votre pire moment ressemble à une décote qui se creuse pendant trois ans parce que l'entreprise déclinait vraiment : un distributeur balayé par le commerce en ligne, un industriel dépassé par une rupture technologique. Vous aviez confondu prix bas et bonne affaire. Et chaque baisse supplémentaire vous semblait une occasion de renforcer, jusqu'à ce que la position pèse beaucoup trop lourd.",
+  regard: "Les autres vous trouvent têtu, parfois arrogant. Ils ont raison une fois sur trois, et c'est précisément le problème : vous ne savez pas toujours laquelle. En comité, vous êtes celui qui apporte les idées que personne d'autre n'a trouvées, et qui défend ses positions bien après que les autres auraient abandonné.",
+  actifsPourquoi: "Votre allocation s'appuie sur les primes value et taille mises en évidence par Fama et French (1992) : historiquement, les actions bon marché et les petites capitalisations ont offert un surcroît de rendement, au prix de longues traversées du désert. D'où 65 % d'actions fortement inclinées vers la value et les petites capitalisations, 10 % de haut rendement, une touche de marchés émergents délaissés et de non coté. Peu d'obligations d'État : elles ne vous intéressent pas.",
+  pertes: "Votre piège est le biais de confirmation : une fois la thèse établie, vous cherchez inconsciemment les informations qui la valident et écartez les autres. Il s'aggrave avec la concentration : en renforçant chaque baisse, vous augmentez votre exposition précisément là où vous avez peut-être tort. L'effet de disposition décrit par Shefrin et Statman (1985), garder trop longtemps ses positions perdantes, prend chez vous l'apparence de la conviction.",
+  gardeFouTexte: "Diversifiez sur au moins vingt positions et gardez 20 % d'actions mondiales sans inclinaison de style. Pour chaque position, écrivez à l'avance ce qui invaliderait votre thèse, et relisez-le à chaque baisse de 20 %. Une conviction qui ne peut jamais être invalidée n'est plus une analyse.",
+  ressemblent: "John Templeton, qui achetait « au maximum du pessimisme », notamment toutes les actions américaines cotant moins d'un dollar au début de la Seconde Guerre mondiale. Seth Klarman, auteur de Margin of Safety. Et les spécialistes des situations spéciales, qui vivent des restructurations que les autres fuient.",
+  comite: "Votre meilleur allié est le Thématique (OLIT) : il partage votre horizon long mais vous ouvre aux tendances de fond que l'analyse des bilans ne révèle pas. Votre contradicteur est le Vigilant (SCIT), qui réagit à chaque nouvelle ; il vous paraît influençable, mais c'est grâce à des investisseurs comme lui que vos décotes existent."
+};
+
+window.TEXTES.OLAT = {
+  qui: [
+    "Vous croyez à la puissance du temps. Une belle entreprise, bien gérée, qui réinvestit ses bénéfices à un rendement élevé, finit par créer une valeur considérable. Votre travail consiste à trouver ces entreprises, à les acheter à un prix raisonnable, et surtout à ne pas les vendre trop tôt.",
+    "Vous êtes optimiste sur le long terme et serein face aux secousses. Une baisse de 20 % de vos actions ne vous inquiète pas si les bénéfices des entreprises continuent de progresser. Vous regardez la trajectoire, pas le cours du jour. Et vous savez que les meilleures performances de votre vie viendront de quelques positions que vous aurez gardées dix ou vingt ans."
+  ],
+  decision: "Vous décidez par l'analyse de la qualité : rentabilité des capitaux investis, solidité de l'avantage concurrentiel, qualité des dirigeants, capacité à augmenter les prix. Vous suivez volontiers le jugement des grands investisseurs que vous admirez, et vous ne craignez pas de détenir les mêmes leaders que tout le monde, si ce sont les meilleurs.",
+  meilleur: "Votre moment, c'est la décennie 2010. Les entreprises de qualité, rentables et en croissance, ont surperformé presque chaque année. Ceux qui ont acheté les grands leaders mondiaux en 2010 et les ont gardés ont vu leur capital multiplié plusieurs fois, sans avoir pris une seule décision difficile.",
+  pire: "Votre épreuve, c'est 2022. La hausse brutale des taux a comprimé les valorisations des entreprises de croissance : des sociétés dont les bénéfices progressaient encore ont perdu 30 % à 50 % en bourse. Rien n'avait changé dans leur qualité ; seul le prix que le marché acceptait de payer pour leurs bénéfices futurs avait baissé. Vous avez découvert que la qualité ne protège pas d'avoir payé trop cher.",
+  regard: "On vous trouve confiant, cohérent, peu nerveux. Vos proches envient votre sérénité pendant les crises. En comité, vous défendez le long terme contre les tentations tactiques, et vous rappelez que les meilleures entreprises se paient rarement bon marché.",
+  actifsPourquoi: "Votre allocation part de la règle que Warren Buffett a fixée pour sa propre famille dans sa lettre aux actionnaires de 2013 : 90 % dans un fonds indiciel d'actions à bas coût, 10 % en obligations d'État courtes. Vous y ajoutez votre touche : une poche actions inclinée vers la qualité, des marchés émergents, et 10 % de capital-investissement pour l'horizon long. C'est l'allocation qui offre le rendement attendu le plus élevé des seize profils, avec des pertes de crise à la hauteur.",
+  pertes: "Votre piège est de payer la qualité trop cher. Dans les années 1970, les « Nifty Fifty », cinquante grandes valeurs américaines jugées incontournables, ont perdu plus de la moitié de leur valeur en deux ans, alors que la plupart sont restées d'excellentes entreprises. Le second piège est la concentration : à force de détenir les mêmes leaders que tout le monde, votre portefeuille dépend de quelques titres et d'un seul facteur.",
+  gardeFouTexte: "Plafonnez votre premier secteur à 30 % du portefeuille et votre premier titre à 8 %. Fixez pour chaque entreprise un prix au-delà duquel vous ne renforcez plus. Vous garderez vos meilleures convictions, sans laisser la valorisation décider de votre risque.",
+  ressemblent: "Warren Buffett dans sa période de maturité, convaincu par Charlie Munger qu'il vaut mieux acheter une entreprise formidable à un prix correct qu'une entreprise correcte à un prix formidable. Philip Fisher, pionnier de l'investissement de croissance. Et Terry Smith, dont la devise tient en trois verbes : acheter de bonnes entreprises, ne pas les payer trop cher, ne rien faire.",
+  comite: "Votre meilleur allié est le Visionnaire (OLID) : il partage votre optimisme mais vous fait découvrir les leaders de demain avant qu'ils ne deviennent des valeurs de qualité. Votre contradicteur est la Sentinelle (SCID), qui vend dès que les valorisations s'emballent ; elle vous paraît craintive, mais elle vous rappelle qu'aucune entreprise ne vaut n'importe quel prix."
+};
+
+window.TEXTES.OLID = {
+  qui: [
+    "Vous voyez aujourd'hui ce qui sera évident dans dix ans. Ou du moins, vous essayez. Vous êtes attiré par les ruptures : technologies naissantes, nouveaux modèles économiques, entreprises que le marché ne sait pas encore évaluer. Vous acceptez que la plupart de vos paris échouent, parce qu'un seul grand succès peut tout rembourser.",
+    "Vous avez une tolérance rare à l'incertitude. Une entreprise sans bénéfices, un marché qui n'existe pas encore, une valorisation impossible à justifier par les chiffres actuels : là où d'autres voient un risque inacceptable, vous voyez une option. Vous pensez en scénarios extrêmes, et vous savez que les rendements exceptionnels se cachent dans les queues de distribution."
+  ],
+  decision: "Vous décidez par conviction et par vision. Vous vous intéressez aux fondateurs, aux usages, aux signaux faibles. Les ratios financiers classiques vous paraissent inadaptés aux entreprises que vous visez. Vous lisez beaucoup, vous rencontrez des entrepreneurs, et vous vous forgez une idée de l'avenir que vous êtes prêt à défendre longtemps.",
+  meilleur: "Votre moment, ce sont les grandes plateformes numériques achetées au début des années 2010, quand le marché doutait encore de leur modèle. Ou les premiers investisseurs dans des entreprises devenues incontournables, entrés quand elles ne valaient qu'une fraction de leur valeur actuelle. Un seul pari de ce type peut faire une carrière.",
+  pire: "Votre épreuve, c'est 2022, et avant elle 2000. Quand les taux montent ou que le crédit se resserre, les entreprises sans bénéfices sont les premières frappées. En 2022, de nombreuses valeurs technologiques non rentables ont perdu 70 % à 80 % de leur valeur, et le financement des jeunes entreprises s'est tari. Votre vision était peut-être juste ; votre portefeuille, lui, a été divisé par trois.",
+  regard: "On vous trouve inspirant, enthousiaste, parfois déconnecté des réalités financières. Vous êtes le premier à parler d'une technologie dans un dîner, et souvent le premier à y avoir investi. En comité, vous apportez les idées que les autres découvriront dans cinq ans, et vous avez du mal à accepter qu'on vous demande un compte de résultat.",
+  actifsPourquoi: "Votre allocation s'inspire du modèle des fonds de dotation, développé par David Swensen à l'université Yale : une large part d'actifs non cotés, rendue possible par un horizon très long et l'absence de besoin de liquidité. D'où 30 % de non coté (capital-risque et capital-développement), 45 % d'actions inclinées vers la croissance et l'innovation, et une petite poche de crypto-actifs. Les obligations ne servent ici qu'à la liquidité.",
+  pertes: "Votre piège est la surconfiance : une vision forte vous fait sous-estimer la probabilité d'échec et surestimer votre capacité à choisir les gagnants. Le second piège est la valorisation : une entreprise peut changer le monde et rester un mauvais investissement si on l'a payée trop cher. Enfin, le non coté a un coût caché : votre argent peut être immobilisé dix ans, et les valorisations affichées réagissent avec retard aux crises.",
+  gardeFouTexte: "Limitez le non coté à 20 % tant que votre patrimoine n'est pas durablement à l'abri d'un besoin de liquidité, et dimensionnez chaque pari pour pouvoir le perdre entièrement sans conséquence. Gardez un socle diversifié qui ne dépend d'aucune vision, la vôtre comprise.",
+  ressemblent: "David Swensen, qui a transformé la gestion du fonds de dotation de Yale. Georges Doriot, Français, professeur à Harvard et père du capital-risque moderne. Et tous les investisseurs qui ont financé les entreprises qui composent aujourd'hui le haut des indices mondiaux.",
+  comite: "Votre meilleur allié est le Bâtisseur (OLAT) : il partage votre horizon et vous apprend à reconnaître le moment où une promesse devient une entreprise de qualité. Votre contradicteur est le Pilote (SCAT), qui sort du marché au premier signal de baisse ; il vous paraît frileux, mais il vous rappelle qu'une vision juste ne sert à rien si l'on est contraint de vendre au pire moment."
+};
+
+window.TEXTES.OLIT = {
+  qui: [
+    "Vous êtes attiré par les grandes histoires du monde qui change. L'intelligence artificielle, la transition énergétique, le vieillissement de la population, l'essor des classes moyennes émergentes : ces mouvements de fond vous passionnent, et vous voulez en être. Investir, pour vous, c'est participer à l'avenir.",
+    "Vous avez de l'enthousiasme et de l'énergie. Vous suivez les tendances qui captent l'attention, vous lisez les études sur les marchés de demain, vous parlez volontiers de vos convictions. Vous préférez un fonds qui investit dans un thème que vous comprenez à un indice large qui ne raconte rien."
+  ],
+  decision: "Vous décidez par le récit. Une thématique convaincante, portée par des chiffres de croissance impressionnants et une couverture médiatique abondante, emporte votre adhésion. Vous faites confiance aux tendances qui se confirment et aux gérants spécialisés. Les valorisations vous préoccupent moins que la direction du monde.",
+  meilleur: "Votre moment, c'est l'essor de l'intelligence artificielle à partir de 2023. Ceux qui avaient identifié tôt le thème et investi dans les fabricants de semi-conducteurs et les infrastructures de calcul ont connu des hausses spectaculaires. Votre lecture des grandes tendances a été récompensée, et vous avez eu le sentiment d'avoir compris le monde avant les autres.",
+  pire: "Votre épreuve, ce sont les thèmes devenus trop populaires. Les fonds consacrés aux énergies renouvelables ont plus que doublé en 2020, puis perdu plus de la moitié de leur valeur dans les années suivantes. La transition énergétique n'a pas disparu ; simplement, ceux qui sont entrés au sommet de l'enthousiasme ont payé le thème beaucoup trop cher. Le thème avait raison, le prix avait tort.",
+  regard: "On vous trouve passionné, curieux, engagé. Vous donnez envie d'investir à votre entourage. En comité, vous apportez la vision des grandes tendances, et vous obligez les autres à se demander ce que leur portefeuille dit de l'avenir.",
+  actifsPourquoi: "Votre allocation suit l'approche cœur-satellite : un cœur indiciel diversifié, entouré de satellites thématiques qui portent vos convictions. Elle compte 75 % d'actions, dont environ la moitié en fonds thématiques, une poche de marchés émergents de croissance et une petite exposition aux crypto-actifs. Les facteurs croissance et momentum dominent : vous achetez ce qui monte et ce qui change.",
+  pertes: "Votre piège est le biais narratif : une belle histoire rend aveugle au prix. Les fonds thématiques sont souvent lancés quand un thème est déjà à la mode, donc cher ; plusieurs études de place ont montré que la majorité d'entre eux sous-performent ensuite les indices mondiaux. Le second piège est le recoupement : cinq fonds thématiques différents peuvent détenir les mêmes vingt valeurs.",
+  gardeFouTexte: "Ramenez les satellites thématiques à 25 % du portefeuille, limitez chaque thème à 10 %, et gardez un cœur indiciel d'au moins 40 %. Achetez progressivement, jamais au pic de la couverture médiatique. Vous restez exposé aux tendances, sans les payer n'importe quel prix.",
+  ressemblent: "Les gérants thématiques qui ont construit leur réputation sur une vision du futur. Les investisseurs des années 1990 qui avaient compris la révolution internet, pour le meilleur avant 2000 et pour le pire après. Et une large part des investisseurs particuliers d'aujourd'hui, pour qui l'investissement est aussi une manière de s'engager.",
+  comite: "Votre meilleur allié est le Chasseur de décotes (OLAD) : il partage votre horizon et vous apprend à vérifier le prix avant d'acheter une histoire. Votre contradicteur est l'Arbitragiste (SCAD), qui ne croit qu'aux chiffres et aux écarts de prix ; il vous paraît sans imagination, mais il vous rappelle que les tendances aussi se paient."
+};
+
+</script>
+<script>
+/* Descriptions longues — famille des Opportunistes (OC)
+   © QuidHabes — Alexandre Hezez, 2026 */
+window.TEXTES = window.TEXTES || {};
+
+window.TEXTES.OCAD = {
+  qui: [
+    "Vous lisez les marchés à travers l'économie. Une décision de banque centrale, une inflation qui accélère, un déséquilibre de balance courante, une devise sous pression : pour vous, ce sont des signaux qui annoncent les mouvements de prix à venir. Vous pensez en cycles, en régimes, en scénarios, et vous construisez des positions pour en profiter.",
+    "Vous aimez prendre position, et souvent contre l'avis général. Quand le consensus anticipe une baisse des taux, vous vous demandez pourquoi ils ne monteraient pas. Vous êtes à l'aise avec toutes les classes d'actifs, et vous passez volontiers des obligations aux devises ou à l'or selon votre lecture de la conjoncture."
+  ],
+  decision: "Vous décidez par l'analyse macroéconomique : indicateurs avancés, politique monétaire, valorisations relatives entre classes d'actifs. Vous formulez une thèse, identifiez les actifs qui en profiteraient le plus, et prenez position avec une taille proportionnée à votre conviction. Vous savez qu'avoir raison sur l'économie ne suffit pas : il faut aussi avoir raison sur ce que le marché a déjà intégré.",
+  meilleur: "Votre moment, c'est 2022. Vous aviez vu que l'inflation ne serait pas « transitoire », que les banques centrales devraient relever leurs taux plus vite que prévu, et que les obligations, qui offraient des rendements négatifs en Allemagne en 2021, étaient l'actif le plus dangereux du marché. Les positions vendeuses sur les taux et acheteuses sur les matières premières ont été les grandes gagnantes de l'année.",
+  pire: "Votre épreuve, c'est d'avoir raison trop tôt. Pendant des années, de nombreux stratèges ont annoncé la fin de la baisse des taux, la chute du dollar ou l'éclatement d'une bulle. Ils avaient raison sur le fond et ont perdu de l'argent pendant cinq ans avant que l'histoire ne leur donne raison. Comme le dit une maxime attribuée à Keynes, le marché peut rester irrationnel plus longtemps que vous ne pouvez rester solvable.",
+  regard: "On vous trouve brillant, argumenté, parfois péremptoire. Vos analyses impressionnent dans les dîners et dans les médias. En comité, vous apportez la vision d'ensemble et les scénarios, et vous obligez les autres à se demander dans quel régime économique ils investissent.",
+  actifsPourquoi: "Votre allocation s'inspire des fonds global macro, qui prennent des positions directionnelles sur toutes les classes d'actifs à partir de scénarios économiques. La photographie présentée est une position moyenne : des obligations longues et indexées pour jouer les taux et l'inflation, 25 % d'actions réparties entre pays, 15 % d'or et de matières premières, 10 % de fonds macro. Dans la réalité, cette allocation peut changer du tout au tout d'un trimestre à l'autre.",
+  pertes: "Votre piège est la surconfiance dans les prévisions. Les études sur les prévisionnistes montrent que même les meilleurs économistes se trompent souvent sur les grands retournements. Le second piège est le calendrier : une thèse juste avec un mauvais point d'entrée peut coûter plus cher qu'une thèse fausse. Enfin, les positions macro sont souvent concentrées, et une seule erreur peut effacer plusieurs années de gains.",
+  gardeFouTexte: "Plafonnez à 2 % du portefeuille la perte acceptable par idée, et coupez sans débat quand ce seuil est atteint. Associez chaque position à un horizon et à un déclencheur explicite. Séparez toujours la thèse, qui peut être juste, du moment d'entrée, qui peut être faux.",
+  ressemblent: "George Soros, qui a gagné un milliard de dollars en pariant contre la livre sterling en 1992. Stanley Druckenmiller, son bras droit pendant cette opération. Et les stratégistes de banques et de sociétés de gestion, dont le métier est de traduire l'économie en allocation d'actifs.",
+  comite: "Votre meilleur allié est le Surfeur (OCIT) : il partage votre goût de l'action mais vous apprend à respecter les tendances de prix, même quand elles contredisent votre analyse. Votre contradicteur est le Rentier (SLIT), qui ne change jamais rien ; il vous paraît passif, mais il vous rappelle que la plupart des prévisions ne valent pas le coût des transactions qu'elles déclenchent."
+};
+
+window.TEXTES.OCAT = {
+  qui: [
+    "Vous faites confiance aux règles plus qu'aux opinions, y compris les vôtres. Pour vous, les marchés laissent des traces statistiques : des tendances qui persistent, des primes de risque qui se répètent, des comportements qui reviennent d'un cycle à l'autre. Votre travail consiste à les identifier, à les tester et à les exploiter sans émotion.",
+    "Vous êtes à l'aise avec l'idée de perdre souvent un peu pour gagner parfois beaucoup. Une stratégie de suivi de tendance se trompe plus d'une fois sur deux, mais ses gains, quand une tendance s'installe, compensent largement ses petites pertes. Vous l'avez compris, et vous l'acceptez."
+  ],
+  decision: "Vous décidez par les données. Vos positions découlent de modèles testés sur des décennies d'historique et plusieurs classes d'actifs. Vous ne discutez pas avec un signal : vous l'exécutez. Les récits, les prévisions et les intuitions vous paraissent des bruits qui perturbent la discipline.",
+  meilleur: "Votre moment, c'est 2008 ou 2022. Le SG Trend Index, qui mesure la performance des grands fonds de suivi de tendance, a gagné 20,9 % en 2008 et 27,4 % en 2022, deux années où les portefeuilles traditionnels ont lourdement chuté. Vos modèles, qui ne savaient rien de Lehman Brothers ni de l'inflation, avaient simplement suivi les prix.",
+  pire: "Votre épreuve, ce sont les années sans tendance, comme la période 2012-2018 pour de nombreux fonds de suivi de tendance : des performances faibles ou négatives, des investisseurs qui retirent leur argent, et le doute qui s'installe. Votre méthode ne fonctionne que si vous la gardez pendant les années où elle ne fonctionne pas, et c'est plus difficile qu'il n'y paraît.",
+  regard: "On vous trouve rigoureux, rationnel, difficile à émouvoir. Les investisseurs plus intuitifs vous trouvent un peu froid ; vous trouvez leurs décisions arbitraires. En comité, vous demandez systématiquement si une idée a été testée, et sur quelle période.",
+  actifsPourquoi: "Votre allocation s'appuie sur deux résultats solides de la recherche : le suivi de tendance sur toutes les classes d'actifs, et les primes factorielles. Asness, Moskowitz et Pedersen (2013) ont montré que la value et le momentum fonctionnent partout, des actions aux devises. D'où 20 % de fonds de suivi de tendance, une poche actions construite par facteurs avec une forte composante momentum, et une diversification large entre obligations, or et matières premières.",
+  pertes: "Votre piège est le surajustement : un modèle trop parfait sur le passé a souvent appris le bruit plutôt que le signal. Le second risque est la popularité : quand trop d'investisseurs suivent les mêmes signaux, les sorties deviennent violentes. Enfin, aucun historique ne contient tous les régimes possibles ; un monde qui change peut rendre vos modèles aveugles.",
+  gardeFouTexte: "Ne dépassez pas 15 % sur une seule stratégie quantitative, diversifiez les signaux et les horizons, et testez systématiquement hors échantillon. Prévoyez une règle d'arrêt si un modèle dérive au-delà de ce que son historique laissait attendre.",
+  ressemblent: "Les Turtle Traders, débutants formés en 1983 par Richard Dennis aux règles du suivi de tendance, dont plusieurs sont devenus des gérants reconnus. Les fondateurs des grands fonds quantitatifs. Et Jim Simons, mathématicien et fondateur de Renaissance Technologies, qui a montré jusqu'où pouvait aller l'approche par les données.",
+  comite: "Votre meilleur allié est le Corsaire (OCID) : il partage votre goût du mouvement et vous rappelle que certaines occasions n'apparaissent dans aucune base de données. Votre contradicteur est le Patriarche (SLID), qui ne regarde jamais un cours ; il vous paraît dépassé, mais il vous rappelle que la richesse durable se construit souvent en ne faisant rien."
+};
+
+window.TEXTES.OCID = {
+  qui: [
+    "Vous avez du flair et le goût du risque. Une entreprise en difficulté que tout le monde fuit, une matière première au plus bas, une situation spéciale que personne ne comprend : vous sentez l'occasion, vous décidez vite, vous y allez. Vous aimez l'adrénaline des coups réussis, et vous en avez réussi quelques-uns.",
+    "Vous êtes indépendant d'esprit. Vous n'attendez ni le consensus ni la validation des experts. Vous préférez une poignée de paris audacieux à un portefeuille sage et sans relief. Et vous savez, au fond, que votre talent est réel, mais qu'il est aussi plus irrégulier que vous ne voudriez l'admettre."
+  ],
+  decision: "Vous décidez à l'instinct, rapidement, à contre-courant. Vous vous fiez à votre lecture des situations, à votre expérience, à votre capacité à sentir ce que les autres ne voient pas. Vous détestez les longues analyses qui font rater le bon moment. Vous agissez d'abord, vous justifiez ensuite.",
+  meilleur: "Votre moment, c'est le rebond d'une valeur condamnée. Mars 2020 en a offert de nombreux exemples : des compagnies aériennes, des groupes hôteliers ou pétroliers ont perdu 60 % à 70 % en quelques semaines, puis ont doublé ou triplé dans les mois suivants. Ceux qui ont eu le courage d'acheter en pleine panique ont réalisé les meilleurs coups de leur vie.",
+  pire: "Votre épreuve, c'est la série gagnante. Après trois ou quatre coups réussis, vous augmentez les mises, persuadé d'avoir trouvé votre méthode. Puis une position tourne mal, vous la renforcez pour vous refaire, et un seul mauvais pari efface plusieurs années de gains. L'effondrement du fonds Archegos en mars 2021, qui avait concentré des positions considérables avec un levier élevé, est la version extrême de ce scénario.",
+  regard: "On vous trouve audacieux, charismatique, parfois imprudent. Vos histoires de coups réussis font briller les dîners. En comité, vous apportez des idées originales et une capacité de décision rare, mais les autres membres se demandent toujours quelle taille vous comptez prendre.",
+  actifsPourquoi: "Votre allocation suit la stratégie « barbell » décrite par Nassim Taleb : une très large part en actifs très sûrs, une petite part en paris très risqués, et presque rien entre les deux. D'où 55 % de monétaire et d'obligations courtes, et environ 30 % de paris spéculatifs : petites capitalisations en retournement, haut rendement, matières premières, crypto-actifs. Votre perte maximale est ainsi bornée, sans brider votre goût des coups.",
+  pertes: "Votre piège est l'illusion de contrôle : vous surestimez votre capacité à maîtriser des situations qui dépendent largement du hasard. Kumar (2009) a montré que les investisseurs attirés par le jeu se tournent vers les titres à profil de loterie et en sortent perdants en moyenne. L'effet casino, qui pousse à prendre plus de risques après des gains, et le désir de se refaire après une perte, font le reste.",
+  gardeFouTexte: "Plafonnez la partie spéculative à 20 % du portefeuille et ne réinvestissez jamais dans les paris plus de la moitié de vos gains. Tenez un journal de chaque décision, avec la raison et la taille ; relisez-le chaque trimestre. Vous garderez votre flair, et vous saurez enfin combien il vous rapporte vraiment.",
+  ressemblent: "Nassim Taleb, ancien trader d'options qui a théorisé la protection contre les événements extrêmes. Les spéculateurs contrariens qui achètent les entreprises en faillite. Et Jesse Livermore à ses grandes heures, qui a fait fortune en vendant à découvert avant le krach de 1929, avant de la perdre plusieurs fois.",
+  comite: "Votre meilleur allié est le Systématique (OCAT) : il partage votre goût du mouvement et vous apporte la discipline qui transforme le flair en méthode. Votre contradicteur est l'Architecte (SLAT), qui ne prend jamais de pari ; il vous paraît sans saveur, mais ses résultats sur vingt ans vous obligent à vous demander si vos coups battent vraiment un simple fonds indiciel."
+};
+
+window.TEXTES.OCIT = {
+  qui: [
+    "Vous aimez l'énergie des marchés. Les tendances fortes, les valeurs qui accélèrent, les thèmes qui enflamment les réseaux : vous voulez être là où ça bouge. Vous ne cherchez pas à comprendre pourquoi un titre monte avant d'y aller ; vous savez que les mouvements forts ont tendance à se prolonger, et vous voulez en profiter.",
+    "Vous êtes réactif et ouvert à la nouveauté. Les nouvelles classes d'actifs ne vous font pas peur, les nouvelles plateformes non plus. Vous suivez ce que font les autres investisseurs actifs, vous échangez sur les forums, vous aimez sentir le pouls du marché en temps réel."
+  ],
+  decision: "Vous décidez par le mouvement et par la foule. Un titre qui casse ses plus hauts, une tendance qui s'accélère, une communauté qui s'enthousiasme : ce sont vos signaux. Vous agissez vite, de peur de rater le train. Les analyses fondamentales vous semblent souvent arriver trop tard.",
+  meilleur: "Votre moment, c'est 2020-2021. Après le krach de mars 2020, les valeurs technologiques, les actions populaires auprès des particuliers et les crypto-actifs ont connu des hausses spectaculaires. Le bitcoin a été multiplié par plus de dix entre mars 2020 et novembre 2021. Ceux qui ont surfé la vague, et qui sont sortis à temps, ont réalisé des gains exceptionnels.",
+  pire: "Votre épreuve, c'est 2022. Le bitcoin a perdu près des trois quarts de sa valeur depuis son sommet de novembre 2021, de nombreuses valeurs technologiques ont été divisées par trois ou quatre, et les plateformes les plus en vogue ont parfois fait faillite. Ceux qui étaient entrés tard, par peur de rater le mouvement, ont tout reperdu, et souvent davantage.",
+  regard: "On vous trouve dynamique, à la pointe, parfois imprudent. Vous êtes celui qui fait découvrir les nouvelles tendances à votre entourage. En comité, vous apportez la lecture du sentiment de marché et vous rappelez que les prix ont leur propre logique, mais les autres s'inquiètent de votre exposition.",
+  actifsPourquoi: "Votre allocation s'appuie sur l'effet momentum, mis en évidence par Jegadeesh et Titman (1993) : les titres qui ont le plus monté sur trois à douze mois continuent en moyenne de surperformer, avant des retournements brutaux. D'où 70 % d'actions orientées vers la croissance et la dynamique de prix, et 15 % de crypto-actifs. C'est l'allocation qui aurait le plus souffert dans chacune des trois crises de référence.",
+  pertes: "Votre piège est la peur de rater le mouvement, qui vous fait entrer tard, quand la tendance est déjà connue de tous. L'effet troupeau amplifie les hausses et les baisses. Barber et Odean (2000) ont montré que les investisseurs qui négocient le plus obtiennent les moins bonnes performances, et Kumar (2009) que l'attrait pour les titres à profil de loterie coûte cher en moyenne. Le levier, enfin, transforme une correction en ruine.",
+  gardeFouTexte: "Portez les obligations et le monétaire à 30 % de votre portefeuille, limitez les crypto-actifs à 5 %, et interdisez-vous tout levier. Définissez un seuil de sortie avant chaque entrée, et respectez-le. Vous continuerez de surfer, mais une vague manquée ne vous coûtera plus que le regret.",
+  ressemblent: "Jesse Livermore, spéculateur légendaire du début du XXe siècle, maître de la tendance et ruiné plusieurs fois. Nicolas Darvas, danseur devenu millionnaire en achetant les titres qui battaient leurs records. Et la génération d'investisseurs particuliers qui a découvert les marchés en 2020 sur les applications de courtage.",
+  comite: "Votre meilleur allié est le Stratège macro (OCAD) : il partage votre goût de l'action et vous apporte la lecture économique qui vous dit quand une tendance risque de se retourner. Votre contradicteur est le Gardien de valeur (SLAD), qui achète ce qui baisse ; il vous paraît dépassé, mais c'est lui qui aura des liquidités pour racheter vos positions après le krach."
+};
+
+</script>
+<script>
+/* Calcul des scores — fonctions pures, utilisables dans le navigateur et sous Node.
+   © QuidHabes — Alexandre Hezez, 2026 */
+(function (root) {
+  const mean = a => a.reduce((s, x) => s + x, 0) / a.length;
+
+  /* Réponse ramenée entre 0 et 1, vers le second pôle. null = sans réponse ou neutralisée. */
+  function norm(q, a) {
+    if (a === undefined || a === null || a === "n") return null;
+    if (q.type === "decl") return (q.inv ? 5 - a : a - 1) / 4;
+    return q.options[a].p / 3;
+  }
+
+  function calc(Q, answers, axes, paires) {
+    const byId = Object.fromEntries(Q.map(q => [q.id, q]));
+    const out = { axes: {} };
+    for (const ax of axes) {
+      const d = [], v = [];
+      for (const q of Q.filter(q => q.axe === ax.id)) {
+        const n = norm(q, answers[q.id]);
+        if (n === null) continue;
+        (q.type === "decl" ? d : v).push(n);
+      }
+      if (!d.length && !v.length) { out.axes[ax.id] = null; continue; }
+      const D = d.length ? mean(d) * 100 : null;
+      const V = v.length ? mean(v) * 100 : null;
+      const S = D === null ? V : V === null ? D : 0.4 * D + 0.6 * V;
+      out.axes[ax.id] = { score: Math.round(S), decl: D === null ? null : Math.round(D), rev: V === null ? null : Math.round(V) };
+    }
+    const diffs = [];
+    for (const [a, b] of paires) {
+      if (!byId[a] || !byId[b]) continue;
+      const na = norm(byId[a], answers[a]), nb = norm(byId[b], answers[b]);
+      if (na !== null && nb !== null) diffs.push(Math.abs(na - nb));
+    }
+    out.coherence = diffs.length >= 3 ? Math.round(100 - 100 * mean(diffs)) : null;
+    return out;
+  }
+
+  const LETTRES = { R: ["S", "O"], H: ["L", "C"], M: ["A", "I"], C: ["D", "T"] };
+  const lettre = (ax, s) => LETTRES[ax][s > 50 ? 1 : 0];
+
+  function code(axesScores) {
+    return ["R", "H", "M", "C"].map(a => lettre(a, axesScores[a].score)).join("");
+  }
+  function suffixe(axesScores) {
+    const x = axesScores.X;
+    return x ? (x.score > 50 ? "R" : "D") : null;
+  }
+  /* Profils voisins : chaque axe équilibré (45 à 55) donne le code obtenu en inversant sa lettre. */
+  function voisins(axesScores) {
+    const base = code(axesScores).split("");
+    const res = [];
+    ["R", "H", "M", "C"].forEach((a, i) => {
+      const s = axesScores[a].score;
+      if (s >= 45 && s <= 55) {
+        const c = base.slice();
+        c[i] = LETTRES[a][s > 50 ? 0 : 1];
+        res.push({ axe: a, code: c.join("") });
+      }
+    });
+    return res;
+  }
+
+  /* Encodage du résultat dans l'ancre de l'URL : r-<f|c>-<5 scores>-<5 déclarés>-<5 révélés>-<cohérence> */
+  const ORDRE = ["R", "H", "M", "C", "X"];
+  function encode(mode, res) {
+    const f = v => (v === null || v === undefined ? "x" : String(v));
+    const s = ORDRE.map(a => f(res.axes[a] && res.axes[a].score));
+    const d = ORDRE.map(a => f(res.axes[a] && res.axes[a].decl));
+    const r = ORDRE.map(a => f(res.axes[a] && res.axes[a].rev));
+    return ["r", mode, ...s, ...d, ...r, f(res.coherence)].join("-");
+  }
+  const RE = /r-[fc](?:-(?:\d{1,3}|x)){16}/;
+  function decode(token) {
+    const m = String(token || "").match(RE);
+    if (!m) return null;
+    const p = m[0].split("-");
+    const n = v => (v === "x" ? null : Math.max(0, Math.min(100, parseInt(v, 10))));
+    const res = { mode: p[1], axes: {}, token: m[0] };
+    ORDRE.forEach((a, i) => {
+      const s = n(p[2 + i]);
+      res.axes[a] = s === null ? null : { score: s, decl: n(p[7 + i]), rev: n(p[12 + i]) };
+    });
+    res.coherence = n(p[17]);
+    if (["R", "H", "M", "C"].some(a => !res.axes[a])) return null;
+    return res;
+  }
+
+  root.Scoring = { norm, calc, code, suffixe, voisins, encode, decode };
+  if (typeof module !== "undefined") module.exports = root.Scoring;
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+/* Profils d'investisseurs — application (routeur, test, résultat, galerie, méthode)
+   © QuidHabes — Alexandre Hezez, 2026 */
+(function () {
+  "use strict";
+  const Q = window.QUESTIONS, AXES = window.AXES, P = window.PROFILS, F = window.FAMILLES;
+  const CL = window.CLASSES, REF = window.REFERENCE, S = window.Scoring;
+  const app = document.getElementById("app");
+  const AX4 = AXES.filter(a => a.id !== "X");
+  const FAM_VAR = { SL: "--pat", SC: "--tac", OL: "--con", OC: "--opp" };
+  const famOf = code => code.slice(0, 2);
+  const famColor = code => `var(${FAM_VAR[famOf(code)]})`;
+  const FORMAT_LABEL = { decl: "Déclaratif", sit: "Mise en situation", chif: "Arbitrage chiffré", passe: "Comportement passé" };
+
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* stockage indisponible */ } },
+    del(k) { try { localStorage.removeItem(k); } catch (e) { /* idem */ } }
+  };
+
+  /* ---------- Emblème : forme = horizon, glyphe = méthode, chevrons = consensus, étincelle = offensive ---------- */
+  function emblem(code, cls) {
+    const off = code[0] === "O", court = code[1] === "C", intu = code[2] === "I", tend = code[3] === "T";
+    const outer = court
+      ? `<path d="M60 8 L112 60 L60 112 L8 60 Z" fill="currentColor" fill-opacity=".14" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/>`
+      : `<circle cx="60" cy="60" r="51" fill="currentColor" fill-opacity=".14" stroke="currentColor" stroke-width="3.5"/>`;
+    const glyph = intu
+      ? `<path d="M34 50 C42 40 50 40 58 50 S74 60 86 50" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+         <path d="M34 62 C42 52 50 52 58 62 S74 72 86 62" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" opacity=".55"/>`
+      : `<rect x="38" y="56" width="9" height="12" rx="2" fill="currentColor"/><rect x="51" y="47" width="9" height="21" rx="2" fill="currentColor"/><rect x="64" y="38" width="9" height="30" rx="2" fill="currentColor"/><rect x="77" y="52" width="6" height="16" rx="2" fill="currentColor" opacity=".45"/>`;
+    const chev = (x, rev) => rev
+      ? `<path d="M${x + 6} 78 L${x} 84 L${x + 6} 90" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`
+      : `<path d="M${x} 78 L${x + 6} 84 L${x} 90" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>`;
+    const chevrons = chev(44, false) + chev(56, false) + (tend ? chev(68, false) : chev(68, true));
+    const spark = off ? `<path d="M92 14 L95 23 L104 26 L95 29 L92 38 L89 29 L80 26 L89 23 Z" fill="currentColor"/>` : "";
+    return `<svg class="emblem ${cls || ""}" viewBox="0 0 120 120" style="color:${famColor(code)}" role="img" aria-label="Emblème du profil ${code}">${outer}${glyph}${chevrons}${spark}</svg>`;
+  }
+
+  /* ---------- Routeur ---------- */
+  function route() {
+    const h = decodeURIComponent((location.hash || "").slice(1));
+    document.querySelectorAll(".nav a").forEach(a => a.removeAttribute("aria-current"));
+    const mark = id => { const a = document.querySelector(`.nav a[data-nav="${id}"]`); if (a) a.setAttribute("aria-current", "page"); };
+    if (h === "test-complet") { mark("test"); return renderTest("f"); }
+    if (h === "test-court") { mark("test"); return renderTest("c"); }
+    if (h.startsWith("r-")) { const r = S.decode(h); if (r) return renderResult(r); }
+    if (h === "profils") { mark("profils"); return renderGallery(); }
+    if (h.startsWith("profil-") && P[h.slice(7)]) { mark("profils"); return renderProfile(h.slice(7)); }
+    if (h === "methode") { mark("methode"); return renderMethod(); }
+    renderHome();
+  }
+  function show(html) { app.innerHTML = html; window.scrollTo(0, 0); }
+
+  /* ---------- Accueil ---------- */
+  function renderHome() {
+    const order = ["SL", "SC", "OL", "OC"];
+    const codes = order.flatMap(f => Object.keys(P).filter(c => famOf(c) === f));
+    const last = store.get("pi-dernier");
+    show(`
+      <section class="hero">
+        <div class="hero-text">
+          <span class="eyebrow">Investype · 16 profils pour découvrir quel investisseur vous êtes vraiment</span>
+          <h1>Quel investisseur êtes-vous vraiment ?</h1>
+          <p class="lead">Quatre axes, des mises en situation tirées de vraies crises de marché, et une confrontation entre ce que vous dites et ce que vous feriez. À la clé : votre profil, vos biais, et l'allocation d'actifs qui vous ressemble.</p>
+          <div class="actions">
+            <a class="btn" href="#test-complet">Passer le test complet <span class="meta">56 questions · 12 min</span></a>
+            <a class="btn ghost" href="#test-court">Version courte <span class="meta">16 questions · 4 min</span></a>
+          </div>
+          ${last ? `<p class="muted">Votre dernier résultat : <a href="#${last.token}"><strong class="mono">${last.code}</strong> · ${P[last.code.slice(0, 4)].nom}</a></p>` : ""}
+        </div>
+        <div>
+          <div class="matrix" aria-label="Les 16 profils">
+            ${codes.map(c => `<a href="#profil-${c}" title="${P[c].nom}">${emblem(c)}<span class="code">${c}</span></a>`).join("")}
+          </div>
+          <div class="matrix-legend">${order.map(f => `<span style="color:var(${FAM_VAR[f]})">● ${F[f].nom.replace("Les ", "")}</span>`).join("")}</div>
+        </div>
+      </section>
+
+      <section>
+        <div class="sec-head">
+          <span class="eyebrow">La grille</span>
+          <h2>Quatre axes, deux lettres chacun</h2>
+          <p class="muted">Votre code combine une lettre par axe. Chaque axe est mesuré de 0 à 100 : vous voyez de quel côté vous penchez, et avec quelle intensité.</p>
+        </div>
+        <div class="axes">
+          ${axisCard("R", "Votre rapport à la perte et à la volatilité : préserver le capital, ou accepter les secousses pour aller chercher le rendement.")}
+          ${axisCard("H", "Votre patience : laisser le temps travailler, ou ajuster souvent pour saisir les mouvements.")}
+          ${axisCard("M", "Votre manière de décider : par les chiffres et les modèles, ou par le flair et le récit.")}
+          ${axisCard("C", "Votre position face à la foule : acheter ce que les autres délaissent, ou suivre la tendance.")}
+        </div>
+        <p class="muted" style="margin-top:16px">Un suffixe complète le code : <strong>-D Discipliné</strong> ou <strong>-R Réactif</strong>, selon que vous tenez vos règles sous le stress.</p>
+      </section>
+
+      <section>
+        <div class="sec-head">
+          <span class="eyebrow">Les familles</span>
+          <h2>Quatre familles d'investisseurs</h2>
+        </div>
+        <div class="families">
+          ${order.map(f => `<a class="family" href="#profils" style="--fam:var(${FAM_VAR[f]});text-decoration:none"><span class="tag">${f}</span><h3>${F[f].nom}</h3><p>${F[f].desc}</p></a>`).join("")}
+        </div>
+      </section>
+
+      <section>
+        <div class="sec-head">
+          <span class="eyebrow">Pourquoi ce test est différent</span>
+          <h2>On ne se contente pas de vous croire sur parole</h2>
+          <p class="muted">Les questionnaires de profil de risque reposent presque tous sur l'auto-évaluation. Ici, quatre formats de questions se recoupent.</p>
+        </div>
+        <div class="formats">
+          <div><span class="eyebrow">Déclaratif</span><h3>Ce que vous pensez de vous</h3><p>Des affirmations à noter sur cinq niveaux d'accord.</p></div>
+          <div><span class="eyebrow">Mise en situation</span><h3>Bulle internet, 2008, 2020, 2022</h3><p>Ce que vous feriez face à de vraies crises de marché.</p></div>
+          <div><span class="eyebrow">Arbitrage chiffré</span><h3>Pile ou face</h3><p>Des choix entre un gain certain et un pari, qui révèlent votre aversion aux pertes.</p></div>
+          <div><span class="eyebrow">Comportement passé</span><h3>Ce que vous avez fait</h3><p>Les décisions que vous avez réellement prises.</p></div>
+        </div>
+        <p class="muted" style="margin-top:16px">Le résultat compare votre score déclaré et votre score révélé sur chaque axe, et mesure la cohérence de vos réponses.</p>
+      </section>
+    `);
+  }
+  function axisCard(id, text) {
+    const a = AXES.find(x => x.id === id);
+    return `<div class="axis-card"><span class="eyebrow">${a.nom}</span>
+      <div class="axis-poles"><span><span class="l">${a.p1.l}</span> ${a.p1.n}</span><span class="rule"></span><span>${a.p2.n} <span class="l">${a.p2.l}</span></span></div>
+      <p>${text}</p></div>`;
+  }
+
+  /* ---------- Test ---------- */
+  function buildOrder(mode) {
+    if (mode === "c") {
+      const ids = window.COURTE;
+      const per = AX4.map(a => ids.filter(i => i[0] === a.id));
+      const out = [];
+      for (let i = 0; i < 4; i++) per.forEach(l => l[i] && out.push(l[i]));
+      return out;
+    }
+    const pat12 = [0, 4, 8, 10, 1, 5, 2, 6, 9, 11, 3, 7], pat8 = [0, 4, 6, 1, 5, 2, 7, 3];
+    const per = AXES.map(a => {
+      const qs = Q.filter(q => q.axe === a.id).map(q => q.id);
+      return (qs.length === 12 ? pat12 : pat8).map(i => qs[i]);
+    });
+    const out = [];
+    for (let i = 0; i < 12; i++) per.forEach(l => l[i] && out.push(l[i]));
+    return out;
+  }
+  function seeded(id, n) {
+    let h = 2166136261;
+    for (const c of id) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
+    const idx = [...Array(n).keys()];
+    for (let i = n - 1; i > 0; i--) { h = Math.imul(h ^ (h >>> 13), 1274126177); const j = Math.abs(h) % (i + 1); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+    return idx;
+  }
+
+  let T = null;
+  function renderTest(mode) {
+    const key = "pi-progress-" + mode;
+    const saved = store.get(key);
+    const order = buildOrder(mode);
+    T = { mode, key, order, answers: (saved && saved.answers) || {}, i: 0 };
+    const firstOpen = order.findIndex(id => T.answers[id] === undefined);
+    T.i = firstOpen === -1 ? order.length - 1 : firstOpen;
+    drawQuestion();
+  }
+  function drawQuestion() {
+    const id = T.order[T.i], q = Q.find(x => x.id === id), n = T.order.length;
+    const done = Object.keys(T.answers).filter(k => T.order.includes(k)).length;
+    const ax = AXES.find(a => a.id === q.axe);
+    const a = T.answers[id];
+    let body;
+    if (q.type === "decl") {
+      body = `<div class="likert" role="group" aria-label="Votre degré d'accord">
+        <div class="likert-row"><span class="likert-end" style="color:var(--tac)">Pas du tout d'accord</span>
+          <div class="likert-dots">${[1, 2, 3, 4, 5].map(v => `<button class="dot" data-v="${v}" aria-pressed="${a === v}" aria-label="${["Pas du tout d'accord", "Plutôt pas d'accord", "Neutre", "Plutôt d'accord", "Tout à fait d'accord"][v - 1]}"></button>`).join("")}</div>
+          <span class="likert-end r" style="color:var(--opp)">Tout à fait d'accord</span></div>
+        <div class="likert-labels"><span style="color:var(--tac)">Pas d'accord</span><span style="color:var(--opp)">D'accord</span></div>
+      </div>`;
+    } else {
+      const perm = seeded(id, q.options.length);
+      body = `<div class="options">${perm.map((oi, k) => `<button class="opt" data-o="${oi}" aria-pressed="${a === oi}"><span class="k">${"ABCD"[k]}</span><span>${q.options[oi].t}</span></button>`).join("")}
+        ${q.neutre ? `<button class="opt neutral" data-o="n" aria-pressed="${a === "n"}"><span class="k">–</span><span>${q.neutre}</span></button>` : ""}</div>`;
+    }
+    show(`<div class="test">
+      <div class="progress">
+        <div class="progress-meta"><span>${T.mode === "f" ? "Test complet" : "Version courte"} · question ${T.i + 1} sur ${n}</span><span>${Math.round(done / n * 100)} %</span></div>
+        <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${n}" aria-valuenow="${done}"><i style="width:${done / n * 100}%"></i></div>
+      </div>
+      <div class="qcard">
+        <div class="qtag"><span class="chip">${FORMAT_LABEL[q.type]}</span>${q.contexte ? `<span class="chip date">${q.contexte}</span>` : ""}<span class="chip">Axe ${ax.nom.toLowerCase()}</span></div>
+        <p class="qtext" id="qtext">${q.texte}</p>
+        ${body}
+      </div>
+      <div class="test-nav">
+        <button class="linkbtn" id="prev" ${T.i === 0 ? "disabled" : ""}>← Question précédente</button>
+        <span class="kbd-hint">${q.type === "decl" ? "Touches 1 à 5" : "Touches A à D"}</span>
+        <button class="linkbtn" id="restart">Recommencer</button>
+      </div>
+    </div>`);
+    app.querySelectorAll(".dot").forEach(b => b.addEventListener("click", () => answer(+b.dataset.v)));
+    app.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => answer(b.dataset.o === "n" ? "n" : +b.dataset.o)));
+    document.getElementById("prev").addEventListener("click", () => { if (T.i > 0) { T.i--; drawQuestion(); } });
+    document.getElementById("restart").addEventListener("click", () => { store.del(T.key); T.answers = {}; T.i = 0; drawQuestion(); });
+  }
+  function answer(v) {
+    const id = T.order[T.i];
+    T.answers[id] = v;
+    store.set(T.key, { answers: T.answers });
+    app.querySelectorAll(".dot,.opt").forEach(b => b.setAttribute("aria-pressed", String((b.dataset.v ? +b.dataset.v : (b.dataset.o === "n" ? "n" : +b.dataset.o)) === v)));
+    setTimeout(() => {
+      const next = T.order.findIndex((qid, k) => k > T.i && T.answers[qid] === undefined);
+      const anyOpen = T.order.findIndex(qid => T.answers[qid] === undefined);
+      if (next !== -1) { T.i = next; drawQuestion(); }
+      else if (anyOpen !== -1) { T.i = anyOpen; drawQuestion(); }
+      else finish();
+    }, 220);
+  }
+  function finish() {
+    const qs = Q.filter(q => T.order.includes(q.id));
+    const res = S.calc(qs, T.answers, AXES, window.PAIRES);
+    const token = S.encode(T.mode, res);
+    const suf = S.suffixe(res.axes);
+    store.set("pi-dernier", { token, code: S.code(res.axes) + (suf ? "-" + suf : "") });
+    store.del(T.key);
+    T = null;
+    location.hash = token;
+  }
+  document.addEventListener("keydown", e => {
+    if (!T || !location.hash.startsWith("#test") || e.metaKey || e.ctrlKey || e.altKey) return;
+    const q = Q.find(x => x.id === T.order[T.i]);
+    if (e.key === "ArrowLeft" || e.key === "Backspace") { if (T.i > 0) { e.preventDefault(); T.i--; drawQuestion(); } return; }
+    if (q.type === "decl" && /^[1-5]$/.test(e.key)) return answer(+e.key);
+    if (q.type !== "decl") {
+      const k = "abcd".indexOf(e.key.toLowerCase());
+      const k2 = "1234".indexOf(e.key);
+      const pos = k !== -1 ? k : k2;
+      if (pos !== -1) return answer(seeded(q.id, q.options.length)[pos]);
+    }
+  });
+
+  /* ---------- Blocs partagés résultat / fiche ---------- */
+  const TX = window.TEXTES, CR = window.CRISES, FA = window.FACTEURS;
+  const flip = (code, idx) => code.split("").map((ch, i) => idx.includes(i) ? AX4[i].p1.l === ch ? AX4[i].p2.l : AX4[i].p1.l : ch).join("");
+  function stats(alloc) {
+    let er = 0, w = 0;
+    CL.forEach(c => { if (c.r !== null) { er += alloc[c.id] * c.r; w += alloc[c.id]; } });
+    return {
+      ret: er / w,
+      crises: [0, 1, 2].map(i => CL.reduce((t, c) => t + alloc[c.id] * c.c[i], 0) / 100),
+      actions: alloc.ACTD + alloc.ACTE + alloc.SMALL
+    };
+  }
+  const fmt = (x, d) => (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x).toFixed(d || 0).replace(".", ",");
+  const darkText = hex => { const n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 150; };
+
+  function profileBlocks(code) {
+    const p = P[code], t = TX[code], fam = famColor(code);
+    const ally = flip(code, [2, 3]), cousin = flip(code, [0]), contra = flip(code, [0, 1, 2, 3]);
+    const mini = (c, label, why) => `<a class="rel" href="#profil-${c}" style="--fam:${famColor(c)}">${emblem(c)}<span><span class="eyebrow">${label}</span><strong>${P[c].nom}</strong> <span class="mono muted">${c}</span><br><span class="muted">${why}</span></span></a>`;
+    return `
+    <div class="story" style="--fam:${fam}">
+      <section class="story-lead">
+        <div class="prose-lg">${t.qui.map(x => `<p>${x}</p>`).join("")}</div>
+        <aside class="panel quick">
+          <h3>En un coup d'œil</h3>
+          <span class="eyebrow">Forces</span><ul class="list">${p.forces.map(x => `<li>${x}</li>`).join("")}</ul>
+          <span class="eyebrow">Biais à surveiller</span><ul class="list minus">${p.biais.map(x => `<li>${x}</li>`).join("")}</ul>
+        </aside>
+      </section>
+
+      <section class="chapter"><span class="eyebrow">Chapitre 1</span><h2>Comment vous décidez</h2><p class="prose">${t.decision}</p></section>
+
+      <section class="chapter"><span class="eyebrow">Chapitre 2</span><h2>Vos grands moments de marché</h2>
+        <div class="grid2">
+          <div class="panel moment good"><span class="eyebrow">Votre plus beau moment</span><p>${t.meilleur}</p></div>
+          <div class="panel moment warn"><span class="eyebrow">Votre pire moment</span><p>${t.pire}</p></div>
+        </div></section>
+
+      <section class="chapter"><span class="eyebrow">Chapitre 3</span><h2>Ce que les autres voient de vous</h2><p class="prose">${t.regard}</p></section>
+
+      ${allocationBlock(code)}
+
+      <section class="chapter"><span class="eyebrow">Chapitre 5</span><h2>Ce qui vous fait perdre de l'argent</h2>
+        <p class="prose">${t.pertes}</p>
+        <div class="callout" style="margin-top:12px"><span class="eyebrow">Le scénario qui vous met à l'épreuve</span><p>${p.danger}</p></div>
+        <p class="prose muted" style="margin-top:12px"><strong>Votre angle mort.</strong> ${p.angleMort}</p></section>
+
+      <section class="chapter"><span class="eyebrow">Chapitre 6</span><h2>Votre garde-fou et vos règles</h2>
+        <div class="grid2">
+          <div class="panel"><h3>Le garde-fou</h3><p>${t.gardeFouTexte}</p></div>
+          <div class="panel"><h3>Trois règles de discipline</h3><ol class="steps">${p.regles.map(x => `<li>${x}</li>`).join("")}</ol></div>
+        </div></section>
+
+      <section class="chapter"><span class="eyebrow">Chapitre 7</span><h2>Les investisseurs qui vous ressemblent</h2><p class="prose">${t.ressemblent}</p></section>
+
+      <section class="chapter"><span class="eyebrow">Chapitre 8</span><h2>Vos alliés et vos contradicteurs</h2>
+        <p class="prose">${t.comite}</p>
+        <div class="rels">
+          ${mini(ally, "Allié naturel", "Même rapport au risque et au temps, autre manière de décider.")}
+          ${mini(cousin, "Cousin", "Même méthode, appétit pour le risque opposé.")}
+          ${mini(contra, "Contradicteur", "Votre opposé sur les quatre axes.")}
+        </div></section>
+    </div>`;
+  }
+
+  function allocationBlock(code) {
+    const p = P[code], t = TX[code], st = stats(p.alloc), rs = stats(REF.alloc);
+    const bar = CL.filter(c => p.alloc[c.id] > 0).map(c => `<span style="width:${p.alloc[c.id]}%;background:${c.couleur};color:${darkText(c.couleur) ? "#132029" : "#fff"}" title="${c.nom} : ${p.alloc[c.id]} %">${p.alloc[c.id] >= 7 ? p.alloc[c.id] + "%" : ""}</span>`).join("");
+    const groups = [...new Set(CL.map(c => c.groupe))];
+    const rows = groups.map(g => {
+      const cls = CL.filter(c => c.groupe === g && (p.alloc[c.id] > 0 || REF.alloc[c.id] > 0));
+      if (!cls.length) return "";
+      return `<tr class="grp"><td colspan="4">${g}</td></tr>` + cls.map(c => {
+        const v = p.alloc[c.id], r = REF.alloc[c.id], d = v - r;
+        return `<tr><td><span class="sw" style="background:${c.couleur}"></span>${c.nom}</td><td class="n">${v} %</td>
+          <td class="bars"><div class="pair"><i style="width:${Math.min(v * 1.5, 100)}%;background:${c.couleur}"></i><i class="ref" style="width:${Math.min(r * 1.5, 100)}%"></i></div></td>
+          <td class="n"><span class="delta ${d > 0 ? "up" : d < 0 ? "down" : ""}">${d === 0 ? "=" : fmt(d)}</span></td></tr>`;
+      }).join("");
+    }).join("");
+    const crisisRows = CR.map((c, i) => {
+      const a = st.crises[i], b = rs.crises[i], maxv = 45;
+      return `<div class="crisis"><div class="crisis-head"><span><strong>${c.nom}</strong> <span class="muted">${c.periode}</span></span></div>
+        <div class="crisis-bars">
+          <div class="cb"><span class="cb-l">Vous</span><span class="cb-track"><i style="width:${Math.min(Math.abs(a) / maxv * 100, 100)}%;background:${a < 0 ? "var(--warn)" : "var(--good)"}"></i></span><span class="mono">${fmt(a)} %</span></div>
+          <div class="cb"><span class="cb-l muted">60/40</span><span class="cb-track"><i style="width:${Math.min(Math.abs(b) / maxv * 100, 100)}%;background:var(--ref)"></i></span><span class="mono muted">${fmt(b)} %</span></div>
+        </div></div>`;
+    }).join("");
+    const dots = v => [-2, -1, 0, 1, 2].map(k => `<i class="${k === v ? "on" : ""} ${k === 0 ? "zero" : ""}"></i>`).join("");
+    const factors = FA.map(f => { const v = p.facteurs[f.id]; return `<div class="factor"><span>${f.nom}</span><span class="fdots" aria-label="${f.nom} : ${v > 0 ? "surpondéré" : v < 0 ? "sous-pondéré" : "neutre"}">${dots(v)}</span></div>`; }).join("");
+    return `<section class="chapter" style="--fam:${famColor(code)}">
+      <span class="eyebrow">Chapitre 4</span><h2>L'allocation qui vous ressemble</h2>
+      <p class="prose">${t.actifsPourquoi}</p>
+
+      <div class="model"><span class="eyebrow">Portefeuille de référence</span><strong>${p.modele.nom}</strong><span class="muted">${p.modele.desc}</span></div>
+
+      <div class="kpis">
+        <div><span class="eyebrow">Rendement attendu</span><span class="kpi">${fmt(st.ret, 1)} %</span><span class="muted">par an sur 10 ans, hors crypto-actifs<br>60/40 : ${fmt(rs.ret, 1)} %</span></div>
+        <div><span class="eyebrow">Actions</span><span class="kpi">${st.actions} %</span><span class="muted">du portefeuille<br>60/40 : ${rs.actions} %</span></div>
+        <div><span class="eyebrow">Pire crise estimée</span><span class="kpi">${fmt(Math.min(...st.crises))} %</span><span class="muted">sur les trois épisodes<br>60/40 : ${fmt(Math.min(...rs.crises))} %</span></div>
+      </div>
+
+      <div class="grid2" style="margin-top:20px">
+        <div class="panel">
+          <h3>Allocation naturelle <span class="eyebrow">${code}</span></h3>
+          <div class="alloc-bar" role="img" aria-label="Allocation naturelle du profil ${code}">${bar}</div>
+          <div class="table-wrap"><table class="alloc-table"><thead><tr><th>Classe d'actifs</th><th style="text-align:right">Poids</th><th style="padding-left:12px">Vous / 60/40</th><th style="text-align:right">Écart</th></tr></thead><tbody>${rows}</tbody></table></div>
+          <p class="muted small">${p.note}</p>
+        </div>
+        <div class="stack">
+          <div class="panel"><h3>À l'épreuve des crises</h3>${crisisRows}
+            <p class="muted small">Performance estimée de l'allocation sur chaque épisode, en euros, comparée à un portefeuille 60/40. Ordres de grandeur.</p></div>
+          <div class="panel"><h3>Votre poche actions</h3><div class="flegend"><span>Sous-pondéré</span><span>Surpondéré</span></div>${factors}</div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:20px">
+        <div class="panel"><h3>Vos actifs préférés</h3><div class="chips">${p.actifs.map(a => `<span>${a}</span>`).join("")}</div></div>
+        <div class="panel"><div class="callout"><span class="eyebrow">Garde-fou en une ligne</span><p>${p.gardeFou}</p></div>
+          <p class="muted small">Ces allocations décrivent un tempérament. Elles ne tiennent compte ni de votre patrimoine, ni de vos revenus, ni de votre horizon réel, et ne constituent pas un conseil en investissement.</p></div>
+      </div>
+    </section>`;
+  }
+
+  /* ---------- Résultat ---------- */
+  function gauge(axId, r, friend) {
+    const a = AXES.find(x => x.id === axId), s = r.score;
+    const win = s > 50 ? a.p2 : a.p1, pct = s > 50 ? s : 100 - s;
+    const color = s > 50 ? "var(--opp)" : "var(--tac)";
+    const fill = s > 50 ? `left:50%;width:${s - 50}%` : `left:${s}%;width:${50 - s}%`;
+    const ticks = (r.rev !== null && r.decl !== null)
+      ? `<span class="gauge-tick" style="left:calc(${r.rev}% - 1px)" title="Révélé : ${r.rev}"></span><span class="gauge-tick decl" style="left:calc(${r.decl}% - 1px)" title="Déclaré : ${r.decl}"></span>` : "";
+    const ft = friend ? `<span class="gauge-tick" style="left:calc(${friend.score}% - 1px);background:var(--con);height:28px;top:-8px" title="Comparaison : ${friend.score}"></span>` : "";
+    return `<div class="gauge">
+      <div class="gauge-head"><span>${a.nom}</span><span><span class="win">${pct} % ${win.n}</span> <span class="mono muted">(${win.l})</span></span></div>
+      <div class="gauge-track"><span class="gauge-fill" style="${fill};background:${color}"></span><span class="gauge-mid"></span>${ticks}${ft}</div>
+      <div class="gauge-foot"><span>${a.p1.l} · ${a.p1.n}</span><span>${a.p2.n} · ${a.p2.l}</span></div></div>`;
+  }
+  function signals(r) {
+    const out = [];
+    if (r.coherence !== null) {
+      const c = r.coherence;
+      out.push(c >= 75 ? `<div class="signal"><span class="pill good">Cohérence ${c}</span><span>Vos réponses aux questions miroirs se recoupent bien. Le profil est fiable.</span></div>`
+        : c >= 60 ? `<div class="signal"><span class="pill info">Cohérence ${c}</span><span>Quelques réponses se contredisent légèrement. Le profil reste exploitable.</span></div>`
+        : `<div class="signal"><span class="pill warn">Cohérence ${c}</span><span>Plusieurs réponses se contredisent. Repassez le test au calme avant d'en tirer des conclusions.</span></div>`);
+    }
+    for (const a of AXES) {
+      const x = r.axes[a.id];
+      if (!x || x.decl === null || x.rev === null) continue;
+      const g = x.rev - x.decl;
+      if (Math.abs(g) > 20) {
+        const vers = g > 0 ? a.p2.n : a.p1.n;
+        out.push(`<div class="signal"><span class="pill warn">Écart ${g > 0 ? "+" : ""}${g}</span><span>Axe ${a.nom.toLowerCase()} : en situation, vous agissez plus « ${vers.toLowerCase()} » que vous ne le déclarez (déclaré ${x.decl}, révélé ${x.rev}).</span></div>`);
+      }
+    }
+    if (out.length < 2 && r.mode === "f") out.push(`<div class="signal"><span class="pill good">Aligné</span><span>Sur tous les axes, ce que vous déclarez et ce que vous feriez concordent à moins de 20 points près.</span></div>`);
+    return out.join("");
+  }
+  function renderResult(r, friendToken) {
+    const code = S.code(r.axes), suf = S.suffixe(r.axes), p = P[code];
+    const friend = friendToken ? S.decode(friendToken) : null;
+    const vois = S.voisins(r.axes);
+    const fcode = friend ? S.code(friend.axes) : null;
+    const common = friend ? [...code].filter((ch, i) => ch === fcode[i]).length : 0;
+    show(`
+      <div class="pcard" style="--fam:${famColor(code)}">
+        ${emblem(code)}
+        <div class="pcard-text">
+          <span class="eyebrow">Votre profil d'investisseur</span>
+          <div class="code-big">${code}${suf ? "-" + suf : ""}</div>
+          <h1>${p.nom}</h1>
+          <p class="devise">« ${p.devise} »</p>
+          <p class="fam-label">Famille <strong>${F[famOf(code)].nom.replace("Les ", "des ")}</strong> · ${suf === "R" ? "tempérament réactif" : suf === "D" ? "tempérament discipliné" : "suffixe non mesuré (version courte)"}</p>
+        </div>
+      </div>
+
+      <section style="margin-top:32px">
+        <div class="grid2">
+          <div class="panel">
+            <h3>Vos axes ${friend ? `<span class="eyebrow" style="color:var(--con)">comparé à ${fcode}</span>` : ""}</h3>
+            ${AX4.map(a => gauge(a.id, r.axes[a.id], friend && friend.axes[a.id])).join("")}
+            ${r.axes.X ? gauge("X", r.axes.X, friend && friend.axes.X) : ""}
+            <div class="legend"><span><i></i>Score révélé</span><span><i class="d"></i>Score déclaré</span>${friend ? `<span><i style="border-color:var(--con)"></i>Comparaison</span>` : ""}</div>
+          </div>
+          <div class="panel">
+            <h3>Ce que révèlent vos réponses</h3>
+            <div class="signals">${signals(r)}</div>
+            ${vois.length ? `<p class="muted" style="font-size:.92rem">Profil${vois.length > 1 ? "s" : ""} voisin${vois.length > 1 ? "s" : ""}, car un axe est proche de l'équilibre : ${vois.map(v => `<a href="#profil-${v.code}"><strong class="mono">${v.code}</strong> ${P[v.code].nom}</a>`).join(", ")}.</p>` : ""}
+            ${suf ? `<div class="callout" style="--fam:${suf === "R" ? "var(--warn)" : "var(--good)"}"><span class="eyebrow">${suf === "R" ? "Suffixe -R · Réactif" : "Suffixe -D · Discipliné"}</span><p>${suf === "R" ? "Vos émotions pèsent sur vos décisions quand le marché bouge vite. Vos règles de discipline et votre garde-fou sont à appliquer en priorité." : "Vous tenez vos règles quand le marché s'agite. C'est un avantage décisif : la plupart des pertes évitables viennent de décisions prises sous le stress."}</p></div>` : `<p class="muted" style="font-size:.92rem">La version courte ne mesure ni la discipline sous stress ni la cohérence. <a href="#test-complet">Passer le test complet</a>.</p>`}
+            ${friend ? `<p style="font-size:.92rem"><strong>${common} lettre${common > 1 ? "s" : ""} sur 4 en commun</strong> avec ${fcode} (${P[fcode].nom}).</p>` : ""}
+          </div>
+        </div>
+      </section>
+
+      <div style="margin-top:40px">${profileBlocks(code)}</div>
+
+      <section style="margin-top:56px">
+        <div class="grid2">
+          <div class="panel"><h3>Partager votre résultat</h3>
+            <p class="muted" style="font-size:.92rem">Votre code de résultat contient vos scores. Envoyez-le à vos amis pour comparer vos profils.</p>
+            <div class="share"><input id="share-code" readonly value="${r.token}" aria-label="Code de résultat"><button class="btn ghost" id="copy">Copier</button></div>
+            <span class="toast" id="toast" aria-live="polite"></span>
+          </div>
+          <div class="panel"><h3>Comparer avec un ami</h3>
+            <p class="muted" style="font-size:.92rem">Collez le code de résultat ou le lien d'un ami : ses scores s'affichent sur vos jauges.</p>
+            <form class="share" id="cmp"><input id="cmp-code" placeholder="r-f-…" aria-label="Code de résultat d'un ami"><button class="btn ghost" type="submit">Comparer</button></form>
+            <span class="toast" id="cmp-msg" aria-live="polite"></span>
+          </div>
+        </div>
+        <div class="actions" style="margin-top:24px"><a class="btn" href="#test-complet">Refaire le test</a><a class="btn ghost" href="#profils">Voir les 16 profils</a></div>
+      </section>
+      <p class="disclaimer" style="margin-top:40px">Ce test est un outil de connaissance de soi et de sensibilisation aux biais comportementaux. Il ne constitue ni un questionnaire d'adéquation réglementaire, ni un conseil en investissement. Il mesure votre tempérament face au risque, pas votre capacité financière à supporter des pertes. Aucune donnée n'est envoyée : vos réponses restent dans votre navigateur.</p>
+    `);
+    document.getElementById("copy").addEventListener("click", () => {
+      const inp = document.getElementById("share-code"), t = document.getElementById("toast");
+      const val = inp.value;
+      const ok = () => { t.textContent = "Code copié."; };
+      const fail = () => { inp.select(); t.textContent = "Code sélectionné : copiez-le avec Ctrl+C ou ⌘C."; };
+      try { navigator.clipboard.writeText(val).then(ok, fail); } catch (e) { fail(); }
+    });
+    document.getElementById("cmp").addEventListener("submit", e => {
+      e.preventDefault();
+      const v = document.getElementById("cmp-code").value, m = document.getElementById("cmp-msg");
+      if (!S.decode(v)) { m.style.color = "var(--warn)"; m.textContent = "Ce code n'est pas reconnu. Il commence par r-f- ou r-c-, suivi de 16 nombres."; return; }
+      renderResult(r, v);
+    });
+  }
+
+  /* ---------- Galerie et fiche ---------- */
+  function renderGallery() {
+    show(`<div class="sec-head"><span class="eyebrow">Galerie</span><h1>Les 16 profils</h1>
+      <p class="muted">Quatre familles, définies par le rapport au risque et l'horizon. Dans chaque famille, la méthode de décision et le rapport au consensus dessinent quatre tempéraments.</p></div>
+      <div style="margin-top:40px">${["SL", "SC", "OL", "OC"].map(f => `
+        <div class="gallery-fam" style="--fam:var(${FAM_VAR[f]})">
+          <div class="gallery-head"><span class="tag">${f}</span><h2>${F[f].nom}</h2></div>
+          <p class="muted prose">${F[f].desc}</p>
+          <div class="cards">${Object.keys(P).filter(c => famOf(c) === f).map(c => `
+            <a class="pcard-mini" href="#profil-${c}" style="--fam:${famColor(c)}">${emblem(c)}<span class="code">${c}</span><h3>${P[c].nom}</h3><p>${P[c].devise}</p></a>`).join("")}</div>
+        </div>`).join("")}</div>`);
+  }
+  function renderProfile(code) {
+    const p = P[code];
+    const letters = AX4.map((a, i) => { const pole = code[i] === a.p1.l ? a.p1 : a.p2; return `<span class="chip">${a.nom} · <strong>${pole.l}</strong> ${pole.n}</span>`; }).join("");
+    show(`<div class="pcard" style="--fam:${famColor(code)}">${emblem(code)}
+        <div class="pcard-text"><span class="eyebrow">${F[famOf(code)].nom}</span><div class="code-big">${code}</div><h1>${p.nom}</h1><p class="devise">« ${p.devise} »</p>
+        <div class="qtag" style="margin-top:12px">${letters}</div></div></div>
+      <div style="margin-top:40px">${profileBlocks(code)}</div>
+      <div class="actions" style="margin-top:32px"><a class="btn" href="#test-complet">Découvrir mon profil</a><a class="btn ghost" href="#profils">Tous les profils</a></div>`);
+  }
+
+  /* ---------- Méthode ---------- */
+  function renderMethod() {
+    show(`<div class="sec-head"><span class="eyebrow">Méthode</span><h1>Comment le test fonctionne</h1>
+      <p class="muted">Le test s'appuie sur la finance comportementale. Il mesure quatre dimensions du tempérament d'investisseur et une cinquième, la discipline sous stress, qui détermine souvent la performance réelle.</p></div>
+      <section style="margin-top:40px"><h2>Les axes</h2>
+        <div class="table-wrap" style="margin-top:16px"><table class="mtable"><thead><tr><th>Axe</th><th>Pôle 1</th><th>Pôle 2</th><th>Ce qui est mesuré</th></tr></thead><tbody>
+          <tr><td>Risque</td><td>S · Sécurité</td><td>O · Offensive</td><td>Tolérance psychologique à la perte, aversion aux pertes, rapport à la volatilité</td></tr>
+          <tr><td>Horizon</td><td>L · Long terme</td><td>C · Court terme</td><td>Patience, préférence temporelle, fréquence de décision</td></tr>
+          <tr><td>Méthode</td><td>A · Analyse</td><td>I · Intuition</td><td>Décision par les données et les modèles, ou par le flair et le récit</td></tr>
+          <tr><td>Consensus</td><td>D · Divergent</td><td>T · Tendance</td><td>Contrarianisme, ou suivi du momentum et de la foule</td></tr>
+          <tr><td>Suffixe</td><td>-D · Discipliné</td><td>-R · Réactif</td><td>Stabilité des décisions sous stress, respect de ses propres règles</td></tr>
+        </tbody></table></div></section>
+      <section style="margin-top:48px"><h2>Le calcul</h2>
+        <ol class="steps prose" style="margin-top:16px">
+          <li>Chaque réponse est ramenée entre 0 et 1 vers le second pôle de l'axe.</li>
+          <li>Le score déclaré est la moyenne des questions déclaratives ; le score révélé, celle des mises en situation, arbitrages chiffrés et comportements passés.</li>
+          <li>Le score de l'axe vaut 40 % du déclaré et 60 % du révélé, moins sensible à l'image de soi.</li>
+          <li>Au-dessus de 50, la lettre retenue est celle du second pôle. Entre 45 et 55, l'axe est équilibré et un profil voisin est proposé.</li>
+          <li>Un écart de plus de 20 points entre déclaré et révélé est signalé.</li>
+          <li>Cinq paires de questions miroirs donnent un indice de cohérence ; sous 60, le résultat est présenté comme fragile.</li>
+        </ol></section>
+      <section style="margin-top:48px"><h2>Les fondements</h2>
+        <p class="prose muted" style="margin-top:12px">Théorie des perspectives et aversion aux pertes (Kahneman et Tversky, 1979) ; typologies d'investisseurs de Bailard, Biehl et Kaiser (1986) et de Pompian ; échelle de tolérance au risque de Grable et Lytton (1999) ; choix de loteries de Holt et Laury (2002) ; test de réflexion cognitive de Frederick (2005). Les liens entre biais et comportements s'appuient sur les travaux de Shefrin et Statman (1985), Barber et Odean (2000), Huberman (2001) et Kumar (2009).</p></section>
+      <section style="margin-top:48px"><h2>Les allocations d'actifs</h2>
+        <p class="prose muted" style="margin-top:12px">Chaque profil reçoit une allocation naturelle sur quinze classes d'actifs, construite par écart à un portefeuille de référence documenté (Graham, Bogle, Browne, Dalio, Swensen, Buffett, Taleb, Faber…), et une inclinaison factorielle de sa poche actions. Les rendements attendus à dix ans proviennent des hypothèses de marché publiées par Amundi (mise à jour du second semestre 2026) et J.P. Morgan (2026), complétées d'estimations signalées comme telles. Les performances en crise sont des ordres de grandeur en euros, calculés classe par classe pour 2008, le krach de février-mars 2020 et 2022.</p>
+        <div class="table-wrap" style="margin-top:16px"><table class="mtable"><thead><tr><th>Classe d'actifs</th><th>Rendement attendu</th><th>Source</th><th>2008</th><th>Krach 2020</th><th>2022</th></tr></thead><tbody>
+          ${CL.map(c => `<tr><td>${c.nom}</td><td class="mono">${c.r === null ? "–" : c.r.toFixed(1).replace(".", ",") + " %"}</td><td>${c.rs}</td>${c.c.map(x => `<td class="mono">${fmt(x)} %</td>`).join("")}</tr>`).join("")}
+        </tbody></table></div></section>
+      <section style="margin-top:48px"><h2>Sources</h2>
+        <ul class="list prose" style="margin-top:12px">${window.SOURCES.map(x => `<li><a href="${x.u}" target="_blank" rel="noopener">${x.t}</a></li>`).join("")}</ul>
+        <h3 style="margin-top:24px">Recherche citée</h3>
+        <ul class="list prose muted" style="margin-top:12px">${window.RECHERCHE.map(x => `<li>${x}</li>`).join("")}</ul></section>
+      <section style="margin-top:48px"><h2>Les limites</h2>
+        <p class="prose muted" style="margin-top:12px">Ce test décrit un tempérament ; il ne remplace ni un questionnaire d'adéquation réglementaire, ni un conseil en investissement. Les allocations sont illustratives. Les codes à quatre lettres simplifient des scores continus : regardez toujours l'intensité de chaque axe. La version 1.0 n'a pas encore fait l'objet d'une validation statistique sur un large échantillon.</p></section>
+      <div class="actions" style="margin-top:32px"><a class="btn" href="#test-complet">Passer le test</a></div>`);
+  }
+
+  window.addEventListener("hashchange", route);
+  route();
+})();
+
+</script>
 </body>
 </html>
