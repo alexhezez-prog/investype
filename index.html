@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Investype</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Investype : 16 profils pour découvrir quel investisseur vous êtes vraiment, vos biais et l'allocation d'actifs qui vous ressemble.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Investype : 16 profils pour découvrir quel investisseur vous êtes vraiment, vos biais et l'allocation type qui illustre votre tempérament.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650;12..96,700&family=Figtree:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -304,6 +305,19 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
   .kpis { grid-template-columns: minmax(0, 1fr); }
 }
 
+/* Version 1.2 : avertissement réglementaire, liquidité */
+.reg { font-size: 0.88rem; line-height: 1.5; padding: 12px 16px; border-radius: 12px; background: var(--sunken); border-left: 3px solid var(--warn); }
+.reg a, .disclaimer a, footer a { color: inherit; text-underline-offset: 3px; }
+.kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.liq { font-family: var(--font-data); font-size: 0.72rem; padding: 1px 7px; border-radius: 999px; font-weight: 600; }
+.liq.good { background: color-mix(in srgb, var(--good) 20%, transparent); color: var(--good); }
+.liq.info { background: color-mix(in srgb, var(--tac) 18%, transparent); color: var(--tac); }
+.liq.warn { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
+.legal { display: grid; gap: 12px; margin-top: 32px; }
+.legal h2 { font-size: 1.15rem; margin-top: 16px; }
+@media (max-width: 980px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .kpis { grid-template-columns: minmax(0, 1fr); } }
+
 </style>
 </head>
 <body>
@@ -325,8 +339,8 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 
 <footer>
   <div class="wrap">
-    <span>© 2026 QuidHabes · Alexandre Hezez · Version 1.1</span>
-    <span>Outil de connaissance de soi, pas un conseil en investissement.</span>
+    <span>© 2026 QuidHabes · Alexandre Hezez · Version 1.2</span>
+    <span>Outil pédagogique, pas un conseil en investissement. <a href="#avertissement">Avertissement et mentions légales</a></span>
   </div>
 </footer>
 
@@ -472,6 +486,8 @@ window.QUESTIONS = [
    - Points d'ancrage publiés : MSCI World en euros −12,8 % en 2022 ; obligations d'État de la zone euro −18,2 %
      et obligations d'entreprises en euros −13,6 % en 2022 (Milliman) ; SG Trend Index +20,9 % en 2008 et +27,4 % en 2022
      (Cambridge Associates) ; MSCI ACWI −42,2 % en 2008 en dollars.
+   - Immobilier non coté et non coté financier : pertes « économiques » estimées. Les valeurs publiées (SCPI, fonds non cotés)
+     baissent moins et plus tard, car elles reposent sur des expertises périodiques (effet de lissage).
    - Les autres valeurs sont des ordres de grandeur estimés à partir d'indices représentatifs. Elles servent à comparer
      les profils entre eux, pas à prévoir une perte. */
 
@@ -494,8 +510,10 @@ window.CLASSES = [
     c: [-51, -30, -15] },
   { id: "SMALL",  nom: "Petites capitalisations",              court: "Petites capi.",    groupe: "Actions",        couleur: "#86c2a6", r: 8.2,  rs: "est.",
     c: [-42, -40, -15] },
-  { id: "IMMO",   nom: "Immobilier et infrastructures",        court: "Immobilier",       groupe: "Actifs réels",   couleur: "#b0693a", r: 5.3,  rs: "Amundi",
-    c: [-20, -15, -10] },
+  { id: "IMMOC",  nom: "Immobilier coté (foncières)",          court: "Immo. coté",       groupe: "Actifs réels",   couleur: "#d4a07a", r: 6.5,  rs: "est.",
+    c: [-50, -40, -38] },
+  { id: "IMMONC", nom: "Immobilier non coté et infrastructures (direct, SCPI)", court: "Immo. non coté", groupe: "Actifs réels", couleur: "#b0693a", r: 5.3, rs: "Amundi",
+    c: [-12, -5, -10] },
   { id: "OR",     nom: "Or",                                   court: "Or",               groupe: "Actifs réels",   couleur: "#c9a227", r: 6.4,  rs: "Amundi",
     c: [10, -3, 6] },
   { id: "MATP",   nom: "Matières premières",                   court: "Mat. premières",   groupe: "Actifs réels",   couleur: "#d98d4c", r: 3.8,  rs: "J.P. Morgan",
@@ -507,6 +525,9 @@ window.CLASSES = [
   { id: "CRYPTO", nom: "Crypto-actifs",                        court: "Crypto",           groupe: "Alternatifs",    couleur: "#c4506f", r: null, rs: "non estimé",
     c: [-50, -50, -60] }
 ];
+
+/* Classes dont la revente prend en général plus d'un mois (liquidité faible) */
+window.ILLIQUIDES = ["IMMONC", "PRIV"];
 
 window.CRISES = [
   { id: "2008", nom: "Crise financière", periode: "Année 2008" },
@@ -557,14 +578,14 @@ window.RECHERCHE = [
 </script>
 <script>
 /* Profils d'investisseurs — données des 16 profils
-   © QuidHabes — Alexandre Hezez, 2026. Version 1.1
+   © QuidHabes — Alexandre Hezez, 2026. Version 1.2
    alloc : poids en % par classe d'actifs (voir marches.js), total 100.
    facteurs : inclinaison de la poche actions, de −2 (fortement sous-pondéré) à +2 (fortement surpondéré).
    modele : portefeuille de référence documenté dont l'allocation s'écarte. */
 
 window.REFERENCE = {
   nom: "Équilibré 60/40",
-  alloc: { MON: 5, GOVC: 10, GOVL: 10, INFL: 0, IG: 15, HY: 0, ACTD: 50, ACTE: 7, SMALL: 3, IMMO: 0, OR: 0, MATP: 0, PRIV: 0, ALT: 0, CRYPTO: 0 }
+  alloc: { MON: 5, GOVC: 10, GOVL: 10, INFL: 0, IG: 15, HY: 0, ACTD: 50, ACTE: 7, SMALL: 3, IMMOC: 0, IMMONC: 0, OR: 0, MATP: 0, PRIV: 0, ALT: 0, CRYPTO: 0 }
 };
 
 window.FAMILLES = {
@@ -574,7 +595,7 @@ window.FAMILLES = {
   OC: { nom: "Les Opportunistes",desc: "Offensive et court terme : ils cherchent le mouvement et saisissent les occasions." }
 };
 
-const Z = { MON: 0, GOVC: 0, GOVL: 0, INFL: 0, IG: 0, HY: 0, ACTD: 0, ACTE: 0, SMALL: 0, IMMO: 0, OR: 0, MATP: 0, PRIV: 0, ALT: 0, CRYPTO: 0 };
+const Z = { MON: 0, GOVC: 0, GOVL: 0, INFL: 0, IG: 0, HY: 0, ACTD: 0, ACTE: 0, SMALL: 0, IMMOC: 0, IMMONC: 0, OR: 0, MATP: 0, PRIV: 0, ALT: 0, CRYPTO: 0 };
 const A = o => Object.assign({}, Z, o);
 
 window.PROFILS = {
@@ -588,7 +609,7 @@ window.PROFILS = {
     actifs: ["Actions décotées à dividende", "Holdings cotées sous leur actif net", "Obligations d'entreprises solides", "Or physique en réserve"],
     angleMort: "Les sociétés de croissance de qualité, jugées trop chères trop tôt.",
     modele: { nom: "L'investisseur « entreprenant » de Benjamin Graham", desc: "Entre 25 % et 75 % d'actions, des titres achetés sous leur valeur intrinsèque, une solide poche obligataire." },
-    alloc: A({ MON: 8, GOVC: 10, GOVL: 5, INFL: 5, IG: 12, ACTD: 30, ACTE: 5, SMALL: 10, IMMO: 8, OR: 7 }),
+    alloc: A({ MON: 8, GOVC: 10, GOVL: 5, INFL: 5, IG: 12, ACTD: 30, ACTE: 5, SMALL: 10, IMMONC: 8, OR: 7 }),
     facteurs: { value: 2, qualite: 1, croissance: -2, momentum: -1, faibleVol: 1, dividende: 1, taille: 1 },
     note: "La poche actions privilégie les titres décotés et les holdings ; elle reste entre les bornes de 25 % et 75 % fixées par Graham.",
     gardeFou: "Plafonner chaque titre décoté à 5 % du portefeuille et garder au moins 15 % d'actions mondiales indicielles.",
@@ -604,7 +625,7 @@ window.PROFILS = {
     actifs: ["ETF actions mondiales", "Obligations d'État diversifiées", "Obligations indexées sur l'inflation", "Fonds à frais réduits"],
     angleMort: "Les actifs réels et les stratégies décorrélées, qui protègent quand le modèle 60/40 casse.",
     modele: { nom: "Le portefeuille indiciel de John Bogle", desc: "Quelques fonds indiciels à bas coût, actions mondiales et obligations, rééquilibrés à date fixe." },
-    alloc: A({ MON: 5, GOVC: 10, GOVL: 10, INFL: 5, IG: 10, ACTD: 45, ACTE: 8, SMALL: 2, IMMO: 3, OR: 2 }),
+    alloc: A({ MON: 5, GOVC: 10, GOVL: 10, INFL: 5, IG: 10, ACTD: 45, ACTE: 8, SMALL: 2, IMMONC: 3, OR: 2 }),
     facteurs: { value: 0, qualite: 0, croissance: 0, momentum: 0, faibleVol: 0, dividende: 0, taille: 0 },
     note: "La poche actions réplique le marché mondial, sans inclinaison de style.",
     gardeFou: "Porter à 10 % la part des actifs qui ne dépendent ni des taux ni des bénéfices (or, indexées, immobilier).",
@@ -620,7 +641,7 @@ window.PROFILS = {
     actifs: ["Immobilier locatif", "Terres agricoles et forêts", "Or physique", "Participations dans des entreprises familiales"],
     angleMort: "Les actions mondiales cotées, liquides et diversifiées.",
     modele: { nom: "Le patrimoine type des ménages français", desc: "L'immobilier représente environ 62 % du patrimoine brut des ménages (Insee, 2021) ; le patrimoine financier, 21 %." },
-    alloc: A({ MON: 8, GOVL: 5, INFL: 2, IG: 5, ACTD: 15, SMALL: 5, IMMO: 40, OR: 10, PRIV: 10 }),
+    alloc: A({ MON: 8, GOVL: 5, INFL: 2, IG: 5, ACTD: 15, SMALL: 5, IMMONC: 40, OR: 10, PRIV: 10 }),
     facteurs: { value: 1, qualite: 1, croissance: -1, momentum: -1, faibleVol: 1, dividende: 2, taille: 1 },
     note: "Le non coté correspond aux participations dans des entreprises familiales ; la poche actions a un fort biais domestique.",
     gardeFou: "Ramener l'immobilier sous 30 % et porter les actions cotées internationales à au moins 25 %.",
@@ -636,7 +657,7 @@ window.PROFILS = {
     actifs: ["Fonds en euros", "Immobilier collectif (SCPI)", "Obligations à rendement régulier", "Livrets réglementés"],
     angleMort: "Les actions sur longue période, principal moteur de croissance réelle du capital.",
     modele: { nom: "L'investisseur « défensif » de Benjamin Graham", desc: "Obligations de qualité et grandes valeurs à dividende régulier, au moins 25 % d'actions." },
-    alloc: A({ MON: 25, GOVC: 10, GOVL: 5, INFL: 5, IG: 15, HY: 3, ACTD: 20, IMMO: 12, OR: 5 }),
+    alloc: A({ MON: 25, GOVC: 10, GOVL: 5, INFL: 5, IG: 15, HY: 3, ACTD: 20, IMMONC: 12, OR: 5 }),
     facteurs: { value: 1, qualite: 1, croissance: -1, momentum: 0, faibleVol: 2, dividende: 2, taille: -1 },
     note: "Le monétaire inclut les livrets et le fonds en euros, qui pèsent environ 55 % des placements financiers des ménages hors participations non cotées (Banque de France, fin 2025).",
     gardeFou: "Limiter le monétaire à 15 % et viser au moins 25 % d'actions pour tout horizon supérieur à huit ans.",
@@ -700,7 +721,7 @@ window.PROFILS = {
     actifs: ["Livrets et placements liquides", "Grandes valeurs connues", "Fonds en euros", "Or"],
     angleMort: "L'effet du temps et du réinvestissement, qui récompense l'inaction.",
     modele: { nom: "L'épargne financière des ménages français", desc: "Dépôts, livrets et fonds en euros représentent l'essentiel des placements financiers des ménages (Banque de France, fin 2025)." },
-    alloc: A({ MON: 40, GOVC: 10, IG: 10, ACTD: 25, IMMO: 10, OR: 5 }),
+    alloc: A({ MON: 40, GOVC: 10, IG: 10, ACTD: 25, IMMONC: 10, OR: 5 }),
     facteurs: { value: 0, qualite: 1, croissance: 0, momentum: 1, faibleVol: 1, dividende: 1, taille: -2 },
     note: "La poche actions se concentre sur les grandes valeurs les plus médiatisées, avec un fort biais domestique.",
     gardeFou: "Programmer des versements mensuels automatiques et s'interdire toute vente dans les 48 heures suivant une forte baisse.",
@@ -716,7 +737,7 @@ window.PROFILS = {
     actifs: ["Petites capitalisations décotées", "Situations spéciales (restructurations, scissions)", "Dette à haut rendement décotée", "Marchés émergents délaissés"],
     angleMort: "Les grandes valeurs de croissance chères mais durablement gagnantes.",
     modele: { nom: "Les primes value et taille de Fama et French (1992)", desc: "Les actions bon marché et les petites capitalisations ont historiquement offert une prime de rendement, au prix de longues traversées du désert." },
-    alloc: A({ MON: 5, GOVC: 5, HY: 10, ACTD: 30, ACTE: 10, SMALL: 25, IMMO: 5, OR: 5, PRIV: 5 }),
+    alloc: A({ MON: 5, GOVC: 5, HY: 10, ACTD: 30, ACTE: 10, SMALL: 25, IMMONC: 5, OR: 5, PRIV: 5 }),
     facteurs: { value: 2, qualite: 0, croissance: -2, momentum: -2, faibleVol: 0, dividende: 1, taille: 2 },
     note: "La poche actions est fortement inclinée vers les titres décotés et les petites capitalisations.",
     gardeFou: "Diversifier sur au moins 20 positions et garder 20 % d'actions mondiales sans inclinaison de style.",
@@ -748,7 +769,7 @@ window.PROFILS = {
     actifs: ["Capital-risque et non coté", "Valeurs technologiques émergentes", "Petites capitalisations innovantes", "Crypto-actifs"],
     angleMort: "La valorisation : une bonne idée peut être un mauvais investissement.",
     modele: { nom: "Le modèle des fonds de dotation (David Swensen, Yale)", desc: "Une large part d'actifs non cotés et de stratégies alternatives, rendue possible par un horizon très long et l'absence de besoin de liquidité." },
-    alloc: A({ MON: 5, GOVC: 5, ACTD: 25, ACTE: 10, SMALL: 10, IMMO: 5, PRIV: 30, ALT: 5, CRYPTO: 5 }),
+    alloc: A({ MON: 5, GOVC: 5, ACTD: 25, ACTE: 10, SMALL: 10, IMMONC: 5, PRIV: 30, ALT: 5, CRYPTO: 5 }),
     facteurs: { value: -2, qualite: 0, croissance: 2, momentum: 1, faibleVol: -2, dividende: -2, taille: 1 },
     note: "Le non coté est majoritairement du capital-risque et du capital-développement.",
     gardeFou: "Limiter le non coté à 20 % tant que votre patrimoine n'est pas durablement à l'abri d'un besoin de liquidité.",
@@ -764,7 +785,7 @@ window.PROFILS = {
     actifs: ["ETF thématiques (intelligence artificielle, énergie, santé)", "Valeurs technologiques", "Infrastructures de la transition", "Actions émergentes de croissance"],
     angleMort: "Les secteurs ennuyeux et peu médiatisés, souvent mieux valorisés.",
     modele: { nom: "L'approche cœur-satellite", desc: "Un cœur indiciel diversifié, entouré de satellites thématiques qui portent les convictions." },
-    alloc: A({ MON: 5, GOVC: 5, IG: 5, ACTD: 55, ACTE: 10, SMALL: 10, IMMO: 2, PRIV: 5, CRYPTO: 3 }),
+    alloc: A({ MON: 5, GOVC: 5, IG: 5, ACTD: 55, ACTE: 10, SMALL: 10, IMMONC: 2, PRIV: 5, CRYPTO: 3 }),
     facteurs: { value: -2, qualite: 0, croissance: 2, momentum: 2, faibleVol: -1, dividende: -1, taille: 0 },
     note: "Environ la moitié de la poche actions est investie en fonds thématiques ; le reste forme le cœur indiciel.",
     gardeFou: "Ramener les satellites thématiques à 25 % du portefeuille et garder un cœur indiciel d'au moins 40 %.",
@@ -851,7 +872,7 @@ window.TEXTES.SLAD = {
   meilleur: "Votre moment, c'est le printemps 2009. Des industriels solides cotaient sous leurs fonds propres, des foncières se négociaient avec 50 % de décote sur leurs actifs, et chacun annonçait la fin du système financier. Vous avez acheté, sans enthousiasme mais avec méthode. Deux ans plus tard, vos décotes s'étaient refermées pendant que d'autres attendaient encore « que la visibilité revienne ».",
   pire: "Votre épreuve, c'est la décennie 2010. De 2010 à 2020, le style value a sous-performé presque sans interruption : les valeurs de croissance chères sont devenues plus chères, et les valeurs bon marché sont restées bon marché. Vous aviez raison sur les chiffres et tort sur le calendrier. Le plus dur n'a pas été de perdre de l'argent, mais de voir les autres en gagner beaucoup avec des raisonnements que vous jugiez fragiles.",
   regard: "Votre entourage vous trouve prudent, parfois rabat-joie. Vous êtes celui qui demande « à quel prix ? » quand tout le monde parle d'une entreprise formidable. En comité, on vous respecte pour votre rigueur et on vous redoute un peu pour vos questions. Personne ne vous accuse d'avoir cédé à une mode, et c'est votre fierté.",
-  actifsPourquoi: "Votre allocation part du modèle de l'investisseur « entreprenant » décrit par Benjamin Graham : entre 25 % et 75 % d'actions, mais des actions achetées sous leur valeur. D'où une poche actions modérée (45 %), inclinée vers la value et les petites capitalisations délaissées, une base obligataire solide, un peu d'immobilier et d'or comme réserves de valeur tangibles. Vous aimez les actifs qu'on peut évaluer ; vous fuyez ceux dont le prix ne repose que sur une promesse.",
+  actifsPourquoi: "L'allocation type de votre profil part du modèle de l'investisseur « entreprenant » décrit par Benjamin Graham : entre 25 % et 75 % d'actions, mais des actions achetées sous leur valeur. D'où une poche actions modérée (45 %), inclinée vers la value et les petites capitalisations délaissées, une base obligataire solide, un peu d'immobilier et d'or comme réserves de valeur tangibles. Vous aimez les actifs qu'on peut évaluer ; vous fuyez ceux dont le prix ne repose que sur une promesse.",
   pertes: "Votre piège porte un nom : la value trap, l'action bon marché qui le reste parce que l'entreprise décline vraiment. Vous êtes aussi exposé à l'ancrage : vous gardez en tête le prix auquel vous avez acheté, ou une valeur historique, et vous refusez de constater qu'elle a changé. Les travaux de Shefrin et Statman (1985) ont montré que les investisseurs gardent trop longtemps leurs positions perdantes ; chez vous, ce réflexe se déguise en patience.",
   gardeFouTexte: "Plafonnez chaque titre décoté à 5 % du portefeuille et gardez au moins 15 % d'actions mondiales indicielles. La première règle limite le coût d'une erreur de diagnostic. La seconde vous garantit de participer aux cycles de croissance que votre méthode vous fera presque toujours manquer.",
   ressemblent: "Benjamin Graham bien sûr, qui a codifié la marge de sécurité. Walter Schloss, qui a battu le marché pendant près de cinquante ans en achetant des titres délaissés, sans chercher à rencontrer les dirigeants. Et, dans sa première manière, le jeune Warren Buffett, avant que Charlie Munger ne le convertisse à la qualité.",
@@ -867,7 +888,7 @@ window.TEXTES.SLAT = {
   meilleur: "Votre moment, c'est mars 2020. Les actions ont perdu un tiers de leur valeur en cinq semaines. Vous n'avez pas paniqué : vous avez rééquilibré, ce qui vous a conduit à acheter des actions au plus bas, simplement parce que votre règle le demandait. Six mois plus tard, votre portefeuille avait retrouvé son niveau, et vous n'aviez pris aucune décision difficile.",
   pire: "Votre épreuve, c'est 2022. Pour la première fois depuis des décennies, actions et obligations ont baissé ensemble : les obligations d'État de la zone euro ont perdu plus de 18 % sur l'année. Votre diversification, conçue pour que les obligations amortissent la chute des actions, n'a pas fonctionné. Vous avez découvert qu'un modèle peut être juste pendant quarante ans et faux une année entière.",
   regard: "On vous trouve sérieux, organisé, un peu prévisible. Vos amis qui spéculent vous trouvent ennuyeux jusqu'à la crise suivante, où ils viennent vous demander conseil. En comité, vous êtes la voix de la méthode et du coût. Vous ramenez les discussions brillantes à une question simple : est-ce que cela change l'allocation de long terme ?",
-  actifsPourquoi: "Votre allocation part du portefeuille indiciel défendu par John Bogle, fondateur de Vanguard : quelques fonds à bas coût, actions mondiales et obligations. Vous la complétez d'obligations indexées sur l'inflation et d'une touche d'or et d'immobilier, la leçon de 2022. La poche actions ne penche vers aucun style : vous détenez le marché, tout le marché.",
+  actifsPourquoi: "L'allocation type de votre profil part du portefeuille indiciel défendu par John Bogle, fondateur de Vanguard : quelques fonds à bas coût, actions mondiales et obligations. Vous la complétez d'obligations indexées sur l'inflation et d'une touche d'or et d'immobilier, la leçon de 2022. La poche actions ne penche vers aucun style : vous détenez le marché, tout le marché.",
   pertes: "Vous perdez rarement de l'argent par excès. Vous en perdez par excès de confiance dans le modèle : des corrélations calculées sur le passé, une diversification qui suppose que les obligations protègent toujours. Votre autre risque est plus discret : à force de ne jamais dévier, vous pouvez ignorer un changement de régime, comme le retour de l'inflation, jusqu'à ce qu'il soit dans vos comptes.",
   gardeFouTexte: "Portez à 10 % au moins la part des actifs qui ne dépendent ni des taux ni des bénéfices : or, obligations indexées, immobilier. Ce n'est pas un pari, c'est une assurance contre le seul scénario que votre modèle traite mal, celui où l'inflation fait baisser actions et obligations en même temps.",
   ressemblent: "John Bogle, qui a démocratisé la gestion indicielle. Burton Malkiel, auteur d'Une marche au hasard dans Wall Street. Et les grands fonds de pension nordiques, qui gèrent des centaines de milliards avec des règles d'allocation publiques et presque immuables.",
@@ -883,7 +904,7 @@ window.TEXTES.SLID = {
   meilleur: "Votre moment, ce sont les années 1998 à 2007 en France. Les prix de l'immobilier ont plus que doublé, et ceux qui avaient acheté pendant la morosité du milieu des années 1990 ont vu leur patrimoine se transformer. Vous n'aviez rien prévu ; vous aviez simplement acheté du concret quand personne n'en voulait, et attendu.",
   pire: "Votre épreuve, c'est le jour où il faut de la liquidité. Une succession à régler, un associé qui veut sortir, une hausse des taux comme en 2022-2023 qui fige le marché immobilier. Vos actifs valent beaucoup sur le papier, mais ne se vendent qu'avec une décote importante et après des mois. Vous découvrez que la richesse et la liquidité sont deux choses différentes.",
   regard: "On vous voit comme un pilier, solide et un peu secret. Votre famille vous fait confiance ; vos amis financiers vous trouvent concentré et peu diversifié. En comité, vous êtes celui qui rappelle que les actifs réels survivent aux crises monétaires, et que la bourse n'est qu'une façon parmi d'autres de détenir des entreprises.",
-  actifsPourquoi: "Votre allocation reflète, en plus diversifié, le patrimoine type des ménages français : selon l'Insee, l'immobilier en représente environ 62 %. D'où une large place pour l'immobilier (40 %), l'or (10 %) et les participations non cotées dans des entreprises familiales (10 %). La poche actions cotées est réduite et fortement domestique, inclinée vers les entreprises de dividende que vous connaissez.",
+  actifsPourquoi: "L'allocation type de votre profil reflète, en plus diversifié, le patrimoine type des ménages français : selon l'Insee, l'immobilier en représente environ 62 %. D'où une large place pour l'immobilier (40 %), l'or (10 %) et les participations non cotées dans des entreprises familiales (10 %). La poche actions cotées est réduite et fortement domestique, inclinée vers les entreprises de dividende que vous connaissez.",
   pertes: "Votre piège principal est la familiarité. Les travaux de Huberman (2001) ont montré que les investisseurs surpondèrent ce qu'ils connaissent : leur région, leur employeur, leur secteur. Chez vous, cela se traduit par une concentration géographique et sectorielle que vous ne voyez plus. Le second piège est l'illiquidité : un patrimoine impossible à mobiliser rapidement peut obliger à vendre au pire moment.",
   gardeFouTexte: "Ramenez l'immobilier sous 30 % de votre patrimoine investissable et portez les actions cotées internationales à au moins 25 %. Gardez aussi une réserve liquide couvrant deux ans de besoins. Vous ne renoncez pas à vos convictions : vous vous donnez les moyens de ne jamais devoir vendre un bien dans l'urgence.",
   ressemblent: "Les grandes familles industrielles européennes, qui détiennent leurs entreprises depuis plusieurs générations. Les family offices qui privilégient l'immobilier et les participations directes. Et, plus près de chez vous, ce grand-parent qui avait acheté des terres et un immeuble, et qui n'a jamais regardé un cours de bourse.",
@@ -899,7 +920,7 @@ window.TEXTES.SLIT = {
   meilleur: "Votre moment, ce sont les années 2000 et 2010. Le fonds en euros rapportait encore 4 % au début de la période, sans risque apparent, pendant que la bourse traversait deux krachs. Vous avez dormi tranquille pendant que d'autres perdaient la moitié de leur capital, et votre patrimoine a progressé sans à-coups.",
   pire: "Votre épreuve, c'est l'inflation de 2022. Les prix ont augmenté de près de 6 % en France, plus de 10 % au pic dans la zone euro, et votre fonds en euros rapportait autour de 2 %. Votre relevé affichait une hausse ; votre pouvoir d'achat, lui, reculait. C'est le piège le plus silencieux qui soit : une perte qui ne se voit pas sur le relevé.",
   regard: "On vous trouve raisonnable, fiable, peu aventureux. Vos amis plus audacieux vous taquinent sur vos livrets ; vous les taquinez en retour à chaque krach. En comité, vous êtes la voix du bon sens : ce placement, l'expliquerait-on à sa grand-mère ? Si la réponse est non, vous passez votre tour.",
-  actifsPourquoi: "Votre allocation part du modèle de l'investisseur « défensif » de Benjamin Graham : des obligations de qualité et des grandes valeurs à dividende régulier, avec au moins 25 % d'actions. Elle reflète aussi la structure de l'épargne des Français, dominée par les livrets et le fonds en euros (Banque de France). D'où un monétaire important (25 %), une poche obligataire de qualité, de l'immobilier de rendement et 20 % d'actions inclinées vers le dividende et la faible volatilité.",
+  actifsPourquoi: "L'allocation type de votre profil part du modèle de l'investisseur « défensif » de Benjamin Graham : des obligations de qualité et des grandes valeurs à dividende régulier, avec au moins 25 % d'actions. Elle reflète aussi la structure de l'épargne des Français, dominée par les livrets et le fonds en euros (Banque de France). D'où un monétaire important (25 %), une poche obligataire de qualité, de l'immobilier de rendement et 20 % d'actions inclinées vers le dividende et la faible volatilité.",
   pertes: "Vous perdez de l'argent en n'en perdant jamais. Le biais du statu quo vous fait conserver des placements dont le rendement réel est devenu négatif. L'illusion monétaire, décrite par les économistes depuis Irving Fisher, vous fait juger un placement sur son rendement affiché plutôt qu'après inflation et fiscalité. Sur vingt ans, l'écart entre 2 % et 5 % par an représente presque un doublement du capital.",
   gardeFouTexte: "Limitez le monétaire à 15 % et visez au moins 25 % d'actions dès que votre horizon dépasse huit ans. Faites-le progressivement, par versements programmés, pour ne pas craindre le mauvais moment. C'est la seule façon de protéger votre pouvoir d'achat sur la durée.",
   ressemblent: "Benjamin Graham dans ses conseils aux investisseurs défensifs. Les épargnants des générations qui ont connu les fortes inflations et qui ont appris à se méfier des promesses. Et, d'une certaine manière, les assureurs, qui gèrent votre fonds en euros avec la même priorité : ne jamais décevoir.",
@@ -921,7 +942,7 @@ window.TEXTES.SCAD = {
   meilleur: "Votre moment, ce sont les années de marchés calmes comme 2017 : volatilité au plus bas, écarts réguliers, stratégies de portage et d'arbitrage qui rapportent mois après mois. Vos performances sont modestes mais d'une régularité que les investisseurs directionnels vous envient.",
   pire: "Votre épreuve porte un nom célèbre : Long-Term Capital Management, en 1998. Un fonds qui comptait deux prix Nobel parmi ses associés, qui arbitrait des écarts minuscules avec un levier considérable, a failli faire tomber le système financier quand tous les écarts se sont élargis en même temps. Votre cauchemar n'est pas de vous tromper sur une position, c'est que toutes vos positions se trompent ensemble, au moment où vous ne pouvez plus attendre.",
   regard: "On vous trouve brillant, un peu froid, difficile à suivre quand vous expliquez vos stratégies. Les investisseurs classiques ne comprennent pas toujours comment vous gagnez de l'argent ; vous ne comprenez pas toujours comment ils supportent de dépendre autant de la direction du marché. En comité, vous êtes celui qui chiffre les risques que les autres décrivent avec des mots.",
-  actifsPourquoi: "Votre allocation part de la parité des risques, popularisée par l'All Weather de Ray Dalio : chaque moteur économique (croissance, inflation, taux) pèse le même risque dans le portefeuille. D'où une forte base obligataire diversifiée (60 %, dont des obligations indexées), une poche actions limitée, un peu d'or et de matières premières, et 10 % de stratégies de valeur relative. En 2008, votre allocation aurait limité la perte à quelques pourcents, l'une des plus faibles des seize profils, et c'est voulu.",
+  actifsPourquoi: "L'allocation type de votre profil part de la parité des risques, popularisée par l'All Weather de Ray Dalio : chaque moteur économique (croissance, inflation, taux) pèse le même risque dans le portefeuille. D'où une forte base obligataire diversifiée (60 %, dont des obligations indexées), une poche actions limitée, un peu d'or et de matières premières, et 10 % de stratégies de valeur relative. En 2008, cette allocation aurait limité la perte à quelques pourcents, l'une des plus faibles des seize profils, et c'est voulu.",
   pertes: "Votre risque est la queue de distribution : l'événement rare que vos modèles jugent presque impossible et qui arrive pourtant. Le second risque est le levier. Quand on gagne peu par opération, la tentation est grande d'emprunter pour amplifier, et c'est le levier, pas l'erreur d'analyse, qui transforme un mauvais mois en catastrophe. LTCM avait raison sur la plupart de ses écarts ; il n'a simplement pas pu attendre qu'ils se referment.",
   gardeFouTexte: "Testez chaque stratégie sur 2008 et sur mars 2020 avant de l'augmenter, et ne vous endettez jamais pour l'amplifier. Gardez une réserve de liquidités suffisante pour tenir vos positions quand les écarts s'élargissent : c'est elle qui vous permettra d'avoir raison à la fin.",
   ressemblent: "Edward Thorp, mathématicien qui a battu le blackjack avant de battre le marché avec l'arbitrage de bons de souscription. Les gérants d'arbitrage de fusions et de convertibles. Et, dans une version plus macro, les promoteurs de la parité des risques chez Bridgewater.",
@@ -937,7 +958,7 @@ window.TEXTES.SCAT = {
   meilleur: "Votre moment, c'est 2008. Un filtre de tendance aussi simple que la moyenne mobile sur dix mois, étudié par Mebane Faber en 2007, a fait sortir les investisseurs des actions dès le début de l'année, bien avant la faillite de Lehman Brothers en septembre. Pendant que le marché perdait près de 40 %, les portefeuilles pilotés de cette façon limitaient la casse à quelques pourcents.",
   pire: "Votre épreuve, ce sont les marchés sans direction, comme le second semestre 2015 ou la fin d'année 2018. Le marché baisse, votre signal vous fait vendre, il remonte aussitôt, votre signal vous fait racheter plus haut, puis il rebaisse. Chaque aller-retour coûte un peu, et au bout de quelques mois vous avez perdu autant que si vous n'aviez rien fait, avec la frustration en plus.",
   regard: "On vous trouve rigoureux, rassurant, un peu mécanique. Vos clients ou vos proches apprécient que vous ayez toujours un plan. En comité, vous êtes celui qui demande : quel est le signal de sortie ? Une idée sans plan de sortie vous paraît incomplète.",
-  actifsPourquoi: "Votre allocation part de l'approche tactique décrite par Mebane Faber : un portefeuille diversifié dont chaque classe d'actifs sort du marché quand son prix passe sous sa moyenne de long terme. La photographie présentée ici est une position moyenne : 35 % d'actions, une base obligataire courte, 15 % de monétaire correspondant aux positions sorties du marché, un peu d'or et 10 % de stratégies de suivi de tendance.",
+  actifsPourquoi: "L'allocation type de votre profil part de l'approche tactique décrite par Mebane Faber : un portefeuille diversifié dont chaque classe d'actifs sort du marché quand son prix passe sous sa moyenne de long terme. La photographie présentée ici est une position moyenne : 35 % d'actions, une base obligataire courte, 15 % de monétaire correspondant aux positions sorties du marché, un peu d'or et 10 % de stratégies de suivi de tendance.",
   pertes: "Vous perdez de l'argent par usure. Les études de Barber et Odean (2000) ont montré que les investisseurs qui changent souvent de positions dégradent leur performance de plusieurs points par an, en frais et en mauvais calendrier. Vos règles vous protègent mieux qu'un investisseur impulsif, mais chaque ajustement a un coût, et les couvertures accumulées pèsent lourd sur dix ans.",
   gardeFouTexte: "Figez 50 % de votre portefeuille dans une allocation stratégique qui ne bouge jamais, hors rééquilibrage annuel. Ne pilotez que l'autre moitié. Mesurez chaque année ce que vos ajustements vous ont réellement rapporté par rapport à cette moitié immobile.",
   ressemblent: "Mebane Faber et les adeptes de l'allocation tactique par tendance. Les gérants de fonds flexibles qui ajustent leur exposition aux actions entre 0 % et 100 %. Et les gérants de fonds à volatilité cible, qui réduisent le risque dès que les marchés s'agitent.",
@@ -953,7 +974,7 @@ window.TEXTES.SCID = {
   meilleur: "Votre moment, c'est l'année 2000. Vous aviez vendu vos valeurs technologiques à la fin de 1999, trop tôt selon vos amis, qui ont encore gagné 20 % en trois mois. Puis l'indice Nasdaq a perdu près de 80 % entre mars 2000 et octobre 2002. Votre trésorerie et votre or vous ont permis de traverser le krach sans dommage, et de racheter à des prix que vous n'espériez plus.",
   pire: "Votre épreuve, c'est la décennie 2010. Vous avez senti des excès dès 2014, puis en 2017, puis en 2019. Les marchés ont continué de monter presque sans interruption. Chaque fois que vous avez vendu, il a fallu racheter plus haut, ou ne pas racheter du tout. Le coût de la prudence, sur une longue période haussière, est considérable, et il ne se voit pas sur un relevé : il se voit dans ce que vous n'avez pas gagné.",
   regard: "On vous trouve prudent, parfois pessimiste. Vos amis vous appellent Cassandre pendant les hausses et viennent vous écouter pendant les baisses. En comité, vous êtes la voix qui dit « attention » quand tout le monde dit « allons-y ». Vous avez souvent raison, mais rarement au bon moment.",
-  actifsPourquoi: "Votre allocation part du Portefeuille permanent de Harry Browne : quatre quarts égaux entre actions, obligations longues, or et liquidités, pour traverser tous les régimes économiques. D'où 25 % de monétaire, 20 % d'or, 20 % d'obligations d'État longues et seulement 25 % d'actions, inclinées vers la qualité et la faible volatilité. Résultat : la perte estimée en 2008 est l'une des plus faibles des seize profils.",
+  actifsPourquoi: "L'allocation type de votre profil part du Portefeuille permanent de Harry Browne : quatre quarts égaux entre actions, obligations longues, or et liquidités, pour traverser tous les régimes économiques. D'où 25 % de monétaire, 20 % d'or, 20 % d'obligations d'État longues et seulement 25 % d'actions, inclinées vers la qualité et la faible volatilité. Résultat : la perte estimée en 2008 est l'une des plus faibles des seize profils.",
   pertes: "Votre biais est l'effet de disposition, décrit par Shefrin et Statman (1985) : vous vendez vos gagnants trop tôt. Chez vous, ce n'est pas de l'impatience, c'est de la méfiance. Le second piège est le coût d'opportunité : une trésorerie de 25 % qui rapporte 2 % pendant que les actions rapportent 8 % coûte environ 1,5 point de performance par an au portefeuille.",
   gardeFouTexte: "Ne descendez jamais sous 25 % d'actions, même quand le marché vous paraît cher, et vendez par tiers plutôt qu'en une seule fois. Fixez à l'avance vos conditions de retour sur le marché, sinon vous ne reviendrez jamais.",
   ressemblent: "Harry Browne et son Portefeuille permanent. Les gérants qui ont annoncé les bulles de 2000 et de 2007, souvent trop tôt. Et les investisseurs qui gardent de l'or depuis des décennies comme une assurance qu'on espère ne jamais utiliser.",
@@ -969,7 +990,7 @@ window.TEXTES.SCIT = {
   meilleur: "Votre moment, c'est le début de 2020. Les premières nouvelles de Chine vous ont inquiété avant que les marchés ne réagissent. Vous avez réduit vos positions fin février, avant le pire de la chute. Votre réactivité vous a protégé d'une baisse de plus de 30 % en cinq semaines.",
   pire: "Votre épreuve, c'est la suite de 2020. Vous aviez vendu au bon moment, mais vous n'avez pas osé racheter : les nouvelles restaient terribles. Les marchés ont pourtant rebondi dès le 23 mars et retrouvé leurs sommets avant la fin de l'été. Vous êtes revenu en septembre, plus haut que votre prix de vente. Avoir raison sur la baisse ne sert à rien si l'on rate la reprise.",
   regard: "On vous trouve informé, curieux, un peu anxieux. Vous êtes la personne qui envoie l'article du jour dans le groupe familial. En comité, vous apportez la température du marché et le ressenti des épargnants, une information précieuse que les modèles ne captent pas.",
-  actifsPourquoi: "Votre allocation reflète la structure de l'épargne des Français telle que la mesure la Banque de France : dépôts, livrets et fonds en euros en représentent l'essentiel. D'où 40 % de monétaire, une poche obligataire courte, un peu d'immobilier et d'or, et 25 % d'actions concentrées sur les grandes valeurs connues, avec un fort biais domestique.",
+  actifsPourquoi: "L'allocation type de votre profil reflète la structure de l'épargne des Français telle que la mesure la Banque de France : dépôts, livrets et fonds en euros en représentent l'essentiel. D'où 40 % de monétaire, une poche obligataire courte, un peu d'immobilier et d'or, et 25 % d'actions concentrées sur les grandes valeurs connues, avec un fort biais domestique.",
   pertes: "Votre piège est de vendre au plus bas et de racheter au plus haut. Kahneman et Tversky (1979) ont montré qu'une perte pèse environ deux fois plus lourd qu'un gain équivalent : chez vous, cette aversion aux pertes s'active à chaque mauvaise nouvelle. Les travaux de Barber et Odean montrent aussi que les investisseurs particuliers achètent les titres qui attirent l'attention médiatique, souvent après la hausse.",
   gardeFouTexte: "Programmez des versements mensuels automatiques, et interdisez-vous toute vente dans les 48 heures qui suivent une forte baisse. Consultez votre portefeuille une fois par mois, pas davantage. Vous restez informé ; vous cessez simplement de laisser l'actualité décider à votre place.",
   ressemblent: "La majorité des épargnants, honnêtement. C'est le profil le plus répandu, et ce n'est pas un défaut : c'est le point de départ. Les meilleurs investisseurs particuliers sont souvent d'anciens Vigilants qui ont appris à automatiser leurs décisions.",
@@ -991,7 +1012,7 @@ window.TEXTES.OLAD = {
   meilleur: "Votre moment, c'est mars 2009. Des banques et des industriels se vendaient sous leur valeur de liquidation, les obligations à haut rendement offraient plus de 20 % de rendement, la presse annonçait la fin du système. Vous achetiez seul, et vous avez multiplié certaines positions par trois ou quatre dans les deux ans qui ont suivi.",
   pire: "Votre pire moment ressemble à une décote qui se creuse pendant trois ans parce que l'entreprise déclinait vraiment : un distributeur balayé par le commerce en ligne, un industriel dépassé par une rupture technologique. Vous aviez confondu prix bas et bonne affaire. Et chaque baisse supplémentaire vous semblait une occasion de renforcer, jusqu'à ce que la position pèse beaucoup trop lourd.",
   regard: "Les autres vous trouvent têtu, parfois arrogant. Ils ont raison une fois sur trois, et c'est précisément le problème : vous ne savez pas toujours laquelle. En comité, vous êtes celui qui apporte les idées que personne d'autre n'a trouvées, et qui défend ses positions bien après que les autres auraient abandonné.",
-  actifsPourquoi: "Votre allocation s'appuie sur les primes value et taille mises en évidence par Fama et French (1992) : historiquement, les actions bon marché et les petites capitalisations ont offert un surcroît de rendement, au prix de longues traversées du désert. D'où 65 % d'actions fortement inclinées vers la value et les petites capitalisations, 10 % de haut rendement, une touche de marchés émergents délaissés et de non coté. Peu d'obligations d'État : elles ne vous intéressent pas.",
+  actifsPourquoi: "L'allocation type de votre profil s'appuie sur les primes value et taille mises en évidence par Fama et French (1992) : historiquement, les actions bon marché et les petites capitalisations ont offert un surcroît de rendement, au prix de longues traversées du désert. D'où 65 % d'actions fortement inclinées vers la value et les petites capitalisations, 10 % de haut rendement, une touche de marchés émergents délaissés et de non coté. Peu d'obligations d'État : elles ne vous intéressent pas.",
   pertes: "Votre piège est le biais de confirmation : une fois la thèse établie, vous cherchez inconsciemment les informations qui la valident et écartez les autres. Il s'aggrave avec la concentration : en renforçant chaque baisse, vous augmentez votre exposition précisément là où vous avez peut-être tort. L'effet de disposition décrit par Shefrin et Statman (1985), garder trop longtemps ses positions perdantes, prend chez vous l'apparence de la conviction.",
   gardeFouTexte: "Diversifiez sur au moins vingt positions et gardez 20 % d'actions mondiales sans inclinaison de style. Pour chaque position, écrivez à l'avance ce qui invaliderait votre thèse, et relisez-le à chaque baisse de 20 %. Une conviction qui ne peut jamais être invalidée n'est plus une analyse.",
   ressemblent: "John Templeton, qui achetait « au maximum du pessimisme », notamment toutes les actions américaines cotant moins d'un dollar au début de la Seconde Guerre mondiale. Seth Klarman, auteur de Margin of Safety. Et les spécialistes des situations spéciales, qui vivent des restructurations que les autres fuient.",
@@ -1007,7 +1028,7 @@ window.TEXTES.OLAT = {
   meilleur: "Votre moment, c'est la décennie 2010. Les entreprises de qualité, rentables et en croissance, ont surperformé presque chaque année. Ceux qui ont acheté les grands leaders mondiaux en 2010 et les ont gardés ont vu leur capital multiplié plusieurs fois, sans avoir pris une seule décision difficile.",
   pire: "Votre épreuve, c'est 2022. La hausse brutale des taux a comprimé les valorisations des entreprises de croissance : des sociétés dont les bénéfices progressaient encore ont perdu 30 % à 50 % en bourse. Rien n'avait changé dans leur qualité ; seul le prix que le marché acceptait de payer pour leurs bénéfices futurs avait baissé. Vous avez découvert que la qualité ne protège pas d'avoir payé trop cher.",
   regard: "On vous trouve confiant, cohérent, peu nerveux. Vos proches envient votre sérénité pendant les crises. En comité, vous défendez le long terme contre les tentations tactiques, et vous rappelez que les meilleures entreprises se paient rarement bon marché.",
-  actifsPourquoi: "Votre allocation part de la règle que Warren Buffett a fixée pour sa propre famille dans sa lettre aux actionnaires de 2013 : 90 % dans un fonds indiciel d'actions à bas coût, 10 % en obligations d'État courtes. Vous y ajoutez votre touche : une poche actions inclinée vers la qualité, des marchés émergents, et 10 % de capital-investissement pour l'horizon long. C'est l'allocation qui offre le rendement attendu le plus élevé des seize profils, avec des pertes de crise à la hauteur.",
+  actifsPourquoi: "L'allocation type de votre profil part de la règle que Warren Buffett a fixée pour sa propre famille dans sa lettre aux actionnaires de 2013 : 90 % dans un fonds indiciel d'actions à bas coût, 10 % en obligations d'État courtes. Vous y ajoutez votre touche : une poche actions inclinée vers la qualité, des marchés émergents, et 10 % de capital-investissement pour l'horizon long. C'est l'allocation qui offre le rendement attendu le plus élevé des seize profils, avec des pertes de crise à la hauteur.",
   pertes: "Votre piège est de payer la qualité trop cher. Dans les années 1970, les « Nifty Fifty », cinquante grandes valeurs américaines jugées incontournables, ont perdu plus de la moitié de leur valeur en deux ans, alors que la plupart sont restées d'excellentes entreprises. Le second piège est la concentration : à force de détenir les mêmes leaders que tout le monde, votre portefeuille dépend de quelques titres et d'un seul facteur.",
   gardeFouTexte: "Plafonnez votre premier secteur à 30 % du portefeuille et votre premier titre à 8 %. Fixez pour chaque entreprise un prix au-delà duquel vous ne renforcez plus. Vous garderez vos meilleures convictions, sans laisser la valorisation décider de votre risque.",
   ressemblent: "Warren Buffett dans sa période de maturité, convaincu par Charlie Munger qu'il vaut mieux acheter une entreprise formidable à un prix correct qu'une entreprise correcte à un prix formidable. Philip Fisher, pionnier de l'investissement de croissance. Et Terry Smith, dont la devise tient en trois verbes : acheter de bonnes entreprises, ne pas les payer trop cher, ne rien faire.",
@@ -1023,7 +1044,7 @@ window.TEXTES.OLID = {
   meilleur: "Votre moment, ce sont les grandes plateformes numériques achetées au début des années 2010, quand le marché doutait encore de leur modèle. Ou les premiers investisseurs dans des entreprises devenues incontournables, entrés quand elles ne valaient qu'une fraction de leur valeur actuelle. Un seul pari de ce type peut faire une carrière.",
   pire: "Votre épreuve, c'est 2022, et avant elle 2000. Quand les taux montent ou que le crédit se resserre, les entreprises sans bénéfices sont les premières frappées. En 2022, de nombreuses valeurs technologiques non rentables ont perdu 70 % à 80 % de leur valeur, et le financement des jeunes entreprises s'est tari. Votre vision était peut-être juste ; votre portefeuille, lui, a été divisé par trois.",
   regard: "On vous trouve inspirant, enthousiaste, parfois déconnecté des réalités financières. Vous êtes le premier à parler d'une technologie dans un dîner, et souvent le premier à y avoir investi. En comité, vous apportez les idées que les autres découvriront dans cinq ans, et vous avez du mal à accepter qu'on vous demande un compte de résultat.",
-  actifsPourquoi: "Votre allocation s'inspire du modèle des fonds de dotation, développé par David Swensen à l'université Yale : une large part d'actifs non cotés, rendue possible par un horizon très long et l'absence de besoin de liquidité. D'où 30 % de non coté (capital-risque et capital-développement), 45 % d'actions inclinées vers la croissance et l'innovation, et une petite poche de crypto-actifs. Les obligations ne servent ici qu'à la liquidité.",
+  actifsPourquoi: "L'allocation type de votre profil s'inspire du modèle des fonds de dotation, développé par David Swensen à l'université Yale : une large part d'actifs non cotés, rendue possible par un horizon très long et l'absence de besoin de liquidité. D'où 30 % de non coté (capital-risque et capital-développement), 45 % d'actions inclinées vers la croissance et l'innovation, et une petite poche de crypto-actifs. Les obligations ne servent ici qu'à la liquidité.",
   pertes: "Votre piège est la surconfiance : une vision forte vous fait sous-estimer la probabilité d'échec et surestimer votre capacité à choisir les gagnants. Le second piège est la valorisation : une entreprise peut changer le monde et rester un mauvais investissement si on l'a payée trop cher. Enfin, le non coté a un coût caché : votre argent peut être immobilisé dix ans, et les valorisations affichées réagissent avec retard aux crises.",
   gardeFouTexte: "Limitez le non coté à 20 % tant que votre patrimoine n'est pas durablement à l'abri d'un besoin de liquidité, et dimensionnez chaque pari pour pouvoir le perdre entièrement sans conséquence. Gardez un socle diversifié qui ne dépend d'aucune vision, la vôtre comprise.",
   ressemblent: "David Swensen, qui a transformé la gestion du fonds de dotation de Yale. Georges Doriot, Français, professeur à Harvard et père du capital-risque moderne. Et tous les investisseurs qui ont financé les entreprises qui composent aujourd'hui le haut des indices mondiaux.",
@@ -1039,7 +1060,7 @@ window.TEXTES.OLIT = {
   meilleur: "Votre moment, c'est l'essor de l'intelligence artificielle à partir de 2023. Ceux qui avaient identifié tôt le thème et investi dans les fabricants de semi-conducteurs et les infrastructures de calcul ont connu des hausses spectaculaires. Votre lecture des grandes tendances a été récompensée, et vous avez eu le sentiment d'avoir compris le monde avant les autres.",
   pire: "Votre épreuve, ce sont les thèmes devenus trop populaires. Les fonds consacrés aux énergies renouvelables ont plus que doublé en 2020, puis perdu plus de la moitié de leur valeur dans les années suivantes. La transition énergétique n'a pas disparu ; simplement, ceux qui sont entrés au sommet de l'enthousiasme ont payé le thème beaucoup trop cher. Le thème avait raison, le prix avait tort.",
   regard: "On vous trouve passionné, curieux, engagé. Vous donnez envie d'investir à votre entourage. En comité, vous apportez la vision des grandes tendances, et vous obligez les autres à se demander ce que leur portefeuille dit de l'avenir.",
-  actifsPourquoi: "Votre allocation suit l'approche cœur-satellite : un cœur indiciel diversifié, entouré de satellites thématiques qui portent vos convictions. Elle compte 75 % d'actions, dont environ la moitié en fonds thématiques, une poche de marchés émergents de croissance et une petite exposition aux crypto-actifs. Les facteurs croissance et momentum dominent : vous achetez ce qui monte et ce qui change.",
+  actifsPourquoi: "L'allocation type de votre profil suit l'approche cœur-satellite : un cœur indiciel diversifié, entouré de satellites thématiques qui portent vos convictions. Elle compte 75 % d'actions, dont environ la moitié en fonds thématiques, une poche de marchés émergents de croissance et une petite exposition aux crypto-actifs. Les facteurs croissance et momentum dominent : vous achetez ce qui monte et ce qui change.",
   pertes: "Votre piège est le biais narratif : une belle histoire rend aveugle au prix. Les fonds thématiques sont souvent lancés quand un thème est déjà à la mode, donc cher ; plusieurs études de place ont montré que la majorité d'entre eux sous-performent ensuite les indices mondiaux. Le second piège est le recoupement : cinq fonds thématiques différents peuvent détenir les mêmes vingt valeurs.",
   gardeFouTexte: "Ramenez les satellites thématiques à 25 % du portefeuille, limitez chaque thème à 10 %, et gardez un cœur indiciel d'au moins 40 %. Achetez progressivement, jamais au pic de la couverture médiatique. Vous restez exposé aux tendances, sans les payer n'importe quel prix.",
   ressemblent: "Les gérants thématiques qui ont construit leur réputation sur une vision du futur. Les investisseurs des années 1990 qui avaient compris la révolution internet, pour le meilleur avant 2000 et pour le pire après. Et une large part des investisseurs particuliers d'aujourd'hui, pour qui l'investissement est aussi une manière de s'engager.",
@@ -1061,7 +1082,7 @@ window.TEXTES.OCAD = {
   meilleur: "Votre moment, c'est 2022. Vous aviez vu que l'inflation ne serait pas « transitoire », que les banques centrales devraient relever leurs taux plus vite que prévu, et que les obligations, qui offraient des rendements négatifs en Allemagne en 2021, étaient l'actif le plus dangereux du marché. Les positions vendeuses sur les taux et acheteuses sur les matières premières ont été les grandes gagnantes de l'année.",
   pire: "Votre épreuve, c'est d'avoir raison trop tôt. Pendant des années, de nombreux stratèges ont annoncé la fin de la baisse des taux, la chute du dollar ou l'éclatement d'une bulle. Ils avaient raison sur le fond et ont perdu de l'argent pendant cinq ans avant que l'histoire ne leur donne raison. Comme le dit une maxime attribuée à Keynes, le marché peut rester irrationnel plus longtemps que vous ne pouvez rester solvable.",
   regard: "On vous trouve brillant, argumenté, parfois péremptoire. Vos analyses impressionnent dans les dîners et dans les médias. En comité, vous apportez la vision d'ensemble et les scénarios, et vous obligez les autres à se demander dans quel régime économique ils investissent.",
-  actifsPourquoi: "Votre allocation s'inspire des fonds global macro, qui prennent des positions directionnelles sur toutes les classes d'actifs à partir de scénarios économiques. La photographie présentée est une position moyenne : des obligations longues et indexées pour jouer les taux et l'inflation, 25 % d'actions réparties entre pays, 15 % d'or et de matières premières, 10 % de fonds macro. Dans la réalité, cette allocation peut changer du tout au tout d'un trimestre à l'autre.",
+  actifsPourquoi: "L'allocation type de votre profil s'inspire des fonds global macro, qui prennent des positions directionnelles sur toutes les classes d'actifs à partir de scénarios économiques. La photographie présentée est une position moyenne : des obligations longues et indexées pour jouer les taux et l'inflation, 25 % d'actions réparties entre pays, 15 % d'or et de matières premières, 10 % de fonds macro. Dans la réalité, cette allocation peut changer du tout au tout d'un trimestre à l'autre.",
   pertes: "Votre piège est la surconfiance dans les prévisions. Les études sur les prévisionnistes montrent que même les meilleurs économistes se trompent souvent sur les grands retournements. Le second piège est le calendrier : une thèse juste avec un mauvais point d'entrée peut coûter plus cher qu'une thèse fausse. Enfin, les positions macro sont souvent concentrées, et une seule erreur peut effacer plusieurs années de gains.",
   gardeFouTexte: "Plafonnez à 2 % du portefeuille la perte acceptable par idée, et coupez sans débat quand ce seuil est atteint. Associez chaque position à un horizon et à un déclencheur explicite. Séparez toujours la thèse, qui peut être juste, du moment d'entrée, qui peut être faux.",
   ressemblent: "George Soros, qui a gagné un milliard de dollars en pariant contre la livre sterling en 1992. Stanley Druckenmiller, son bras droit pendant cette opération. Et les stratégistes de banques et de sociétés de gestion, dont le métier est de traduire l'économie en allocation d'actifs.",
@@ -1077,7 +1098,7 @@ window.TEXTES.OCAT = {
   meilleur: "Votre moment, c'est 2008 ou 2022. Le SG Trend Index, qui mesure la performance des grands fonds de suivi de tendance, a gagné 20,9 % en 2008 et 27,4 % en 2022, deux années où les portefeuilles traditionnels ont lourdement chuté. Vos modèles, qui ne savaient rien de Lehman Brothers ni de l'inflation, avaient simplement suivi les prix.",
   pire: "Votre épreuve, ce sont les années sans tendance, comme la période 2012-2018 pour de nombreux fonds de suivi de tendance : des performances faibles ou négatives, des investisseurs qui retirent leur argent, et le doute qui s'installe. Votre méthode ne fonctionne que si vous la gardez pendant les années où elle ne fonctionne pas, et c'est plus difficile qu'il n'y paraît.",
   regard: "On vous trouve rigoureux, rationnel, difficile à émouvoir. Les investisseurs plus intuitifs vous trouvent un peu froid ; vous trouvez leurs décisions arbitraires. En comité, vous demandez systématiquement si une idée a été testée, et sur quelle période.",
-  actifsPourquoi: "Votre allocation s'appuie sur deux résultats solides de la recherche : le suivi de tendance sur toutes les classes d'actifs, et les primes factorielles. Asness, Moskowitz et Pedersen (2013) ont montré que la value et le momentum fonctionnent partout, des actions aux devises. D'où 20 % de fonds de suivi de tendance, une poche actions construite par facteurs avec une forte composante momentum, et une diversification large entre obligations, or et matières premières.",
+  actifsPourquoi: "L'allocation type de votre profil s'appuie sur deux résultats solides de la recherche : le suivi de tendance sur toutes les classes d'actifs, et les primes factorielles. Asness, Moskowitz et Pedersen (2013) ont montré que la value et le momentum fonctionnent partout, des actions aux devises. D'où 20 % de fonds de suivi de tendance, une poche actions construite par facteurs avec une forte composante momentum, et une diversification large entre obligations, or et matières premières.",
   pertes: "Votre piège est le surajustement : un modèle trop parfait sur le passé a souvent appris le bruit plutôt que le signal. Le second risque est la popularité : quand trop d'investisseurs suivent les mêmes signaux, les sorties deviennent violentes. Enfin, aucun historique ne contient tous les régimes possibles ; un monde qui change peut rendre vos modèles aveugles.",
   gardeFouTexte: "Ne dépassez pas 15 % sur une seule stratégie quantitative, diversifiez les signaux et les horizons, et testez systématiquement hors échantillon. Prévoyez une règle d'arrêt si un modèle dérive au-delà de ce que son historique laissait attendre.",
   ressemblent: "Les Turtle Traders, débutants formés en 1983 par Richard Dennis aux règles du suivi de tendance, dont plusieurs sont devenus des gérants reconnus. Les fondateurs des grands fonds quantitatifs. Et Jim Simons, mathématicien et fondateur de Renaissance Technologies, qui a montré jusqu'où pouvait aller l'approche par les données.",
@@ -1093,7 +1114,7 @@ window.TEXTES.OCID = {
   meilleur: "Votre moment, c'est le rebond d'une valeur condamnée. Mars 2020 en a offert de nombreux exemples : des compagnies aériennes, des groupes hôteliers ou pétroliers ont perdu 60 % à 70 % en quelques semaines, puis ont doublé ou triplé dans les mois suivants. Ceux qui ont eu le courage d'acheter en pleine panique ont réalisé les meilleurs coups de leur vie.",
   pire: "Votre épreuve, c'est la série gagnante. Après trois ou quatre coups réussis, vous augmentez les mises, persuadé d'avoir trouvé votre méthode. Puis une position tourne mal, vous la renforcez pour vous refaire, et un seul mauvais pari efface plusieurs années de gains. L'effondrement du fonds Archegos en mars 2021, qui avait concentré des positions considérables avec un levier élevé, est la version extrême de ce scénario.",
   regard: "On vous trouve audacieux, charismatique, parfois imprudent. Vos histoires de coups réussis font briller les dîners. En comité, vous apportez des idées originales et une capacité de décision rare, mais les autres membres se demandent toujours quelle taille vous comptez prendre.",
-  actifsPourquoi: "Votre allocation suit la stratégie « barbell » décrite par Nassim Taleb : une très large part en actifs très sûrs, une petite part en paris très risqués, et presque rien entre les deux. D'où 55 % de monétaire et d'obligations courtes, et environ 30 % de paris spéculatifs : petites capitalisations en retournement, haut rendement, matières premières, crypto-actifs. Votre perte maximale est ainsi bornée, sans brider votre goût des coups.",
+  actifsPourquoi: "L'allocation type de votre profil suit la stratégie « barbell » décrite par Nassim Taleb : une très large part en actifs très sûrs, une petite part en paris très risqués, et presque rien entre les deux. D'où 55 % de monétaire et d'obligations courtes, et environ 30 % de paris spéculatifs : petites capitalisations en retournement, haut rendement, matières premières, crypto-actifs. Votre perte maximale est ainsi bornée, sans brider votre goût des coups.",
   pertes: "Votre piège est l'illusion de contrôle : vous surestimez votre capacité à maîtriser des situations qui dépendent largement du hasard. Kumar (2009) a montré que les investisseurs attirés par le jeu se tournent vers les titres à profil de loterie et en sortent perdants en moyenne. L'effet casino, qui pousse à prendre plus de risques après des gains, et le désir de se refaire après une perte, font le reste.",
   gardeFouTexte: "Plafonnez la partie spéculative à 20 % du portefeuille et ne réinvestissez jamais dans les paris plus de la moitié de vos gains. Tenez un journal de chaque décision, avec la raison et la taille ; relisez-le chaque trimestre. Vous garderez votre flair, et vous saurez enfin combien il vous rapporte vraiment.",
   ressemblent: "Nassim Taleb, ancien trader d'options qui a théorisé la protection contre les événements extrêmes. Les spéculateurs contrariens qui achètent les entreprises en faillite. Et Jesse Livermore à ses grandes heures, qui a fait fortune en vendant à découvert avant le krach de 1929, avant de la perdre plusieurs fois.",
@@ -1109,7 +1130,7 @@ window.TEXTES.OCIT = {
   meilleur: "Votre moment, c'est 2020-2021. Après le krach de mars 2020, les valeurs technologiques, les actions populaires auprès des particuliers et les crypto-actifs ont connu des hausses spectaculaires. Le bitcoin a été multiplié par plus de dix entre mars 2020 et novembre 2021. Ceux qui ont surfé la vague, et qui sont sortis à temps, ont réalisé des gains exceptionnels.",
   pire: "Votre épreuve, c'est 2022. Le bitcoin a perdu près des trois quarts de sa valeur depuis son sommet de novembre 2021, de nombreuses valeurs technologiques ont été divisées par trois ou quatre, et les plateformes les plus en vogue ont parfois fait faillite. Ceux qui étaient entrés tard, par peur de rater le mouvement, ont tout reperdu, et souvent davantage.",
   regard: "On vous trouve dynamique, à la pointe, parfois imprudent. Vous êtes celui qui fait découvrir les nouvelles tendances à votre entourage. En comité, vous apportez la lecture du sentiment de marché et vous rappelez que les prix ont leur propre logique, mais les autres s'inquiètent de votre exposition.",
-  actifsPourquoi: "Votre allocation s'appuie sur l'effet momentum, mis en évidence par Jegadeesh et Titman (1993) : les titres qui ont le plus monté sur trois à douze mois continuent en moyenne de surperformer, avant des retournements brutaux. D'où 70 % d'actions orientées vers la croissance et la dynamique de prix, et 15 % de crypto-actifs. C'est l'allocation qui aurait le plus souffert dans chacune des trois crises de référence.",
+  actifsPourquoi: "L'allocation type de votre profil s'appuie sur l'effet momentum, mis en évidence par Jegadeesh et Titman (1993) : les titres qui ont le plus monté sur trois à douze mois continuent en moyenne de surperformer, avant des retournements brutaux. D'où 70 % d'actions orientées vers la croissance et la dynamique de prix, et 15 % de crypto-actifs. C'est l'allocation qui aurait le plus souffert dans chacune des trois crises de référence.",
   pertes: "Votre piège est la peur de rater le mouvement, qui vous fait entrer tard, quand la tendance est déjà connue de tous. L'effet troupeau amplifie les hausses et les baisses. Barber et Odean (2000) ont montré que les investisseurs qui négocient le plus obtiennent les moins bonnes performances, et Kumar (2009) que l'attrait pour les titres à profil de loterie coûte cher en moyenne. Le levier, enfin, transforme une correction en ruine.",
   gardeFouTexte: "Portez les obligations et le monétaire à 30 % de votre portefeuille, limitez les crypto-actifs à 5 %, et interdisez-vous tout levier. Définissez un seuil de sortie avant chaque entrée, et respectez-le. Vous continuerez de surfer, mais une vague manquée ne vous coûtera plus que le regret.",
   ressemblent: "Jesse Livermore, spéculateur légendaire du début du XXe siècle, maître de la tendance et ruiné plusieurs fois. Nicolas Darvas, danseur devenu millionnaire en achetant les titres qui battaient leurs records. Et la génération d'investisseurs particuliers qui a découvert les marchés en 2020 sur les applications de courtage.",
@@ -1260,6 +1281,7 @@ window.TEXTES.OCIT = {
     if (h === "profils") { mark("profils"); return renderGallery(); }
     if (h.startsWith("profil-") && P[h.slice(7)]) { mark("profils"); return renderProfile(h.slice(7)); }
     if (h === "methode") { mark("methode"); return renderMethod(); }
+    if (h === "avertissement") return renderLegal();
     renderHome();
   }
   function show(html) { app.innerHTML = html; window.scrollTo(0, 0); }
@@ -1274,7 +1296,8 @@ window.TEXTES.OCIT = {
         <div class="hero-text">
           <span class="eyebrow">Investype · 16 profils pour découvrir quel investisseur vous êtes vraiment</span>
           <h1>Quel investisseur êtes-vous vraiment ?</h1>
-          <p class="lead">Quatre axes, des mises en situation tirées de vraies crises de marché, et une confrontation entre ce que vous dites et ce que vous feriez. À la clé : votre profil, vos biais, et l'allocation d'actifs qui vous ressemble.</p>
+          <p class="lead">Quatre axes, des mises en situation tirées de vraies crises de marché, et une confrontation entre ce que vous dites et ce que vous feriez. À la clé : votre profil, vos biais, et l'allocation type qui illustre votre tempérament.</p>
+          <p class="muted small">Outil pédagogique, gratuit et sans collecte de données. Il ne constitue pas un conseil en investissement. <a href="#avertissement">Avertissement</a></p>
           <div class="actions">
             <a class="btn" href="#test-complet">Passer le test complet <span class="meta">56 questions · 12 min</span></a>
             <a class="btn ghost" href="#test-court">Version courte <span class="meta">16 questions · 4 min</span></a>
@@ -1457,7 +1480,8 @@ window.TEXTES.OCIT = {
     return {
       ret: er / w,
       crises: [0, 1, 2].map(i => CL.reduce((t, c) => t + alloc[c.id] * c.c[i], 0) / 100),
-      actions: alloc.ACTD + alloc.ACTE + alloc.SMALL
+      actions: alloc.ACTD + alloc.ACTE + alloc.SMALL,
+      liq: 100 - window.ILLIQUIDES.reduce((t, k) => t + alloc[k], 0)
     };
   }
   const fmt = (x, d) => (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x).toFixed(d || 0).replace(".", ",");
@@ -1538,15 +1562,17 @@ window.TEXTES.OCIT = {
     const dots = v => [-2, -1, 0, 1, 2].map(k => `<i class="${k === v ? "on" : ""} ${k === 0 ? "zero" : ""}"></i>`).join("");
     const factors = FA.map(f => { const v = p.facteurs[f.id]; return `<div class="factor"><span>${f.nom}</span><span class="fdots" aria-label="${f.nom} : ${v > 0 ? "surpondéré" : v < 0 ? "sous-pondéré" : "neutre"}">${dots(v)}</span></div>`; }).join("");
     return `<section class="chapter" style="--fam:${famColor(code)}">
-      <span class="eyebrow">Chapitre 4</span><h2>L'allocation qui vous ressemble</h2>
+      <span class="eyebrow">Chapitre 4</span><h2>L'allocation type de votre profil</h2>
+      <div class="reg" role="note"><strong>Illustration pédagogique, pas un conseil en investissement.</strong> Cette allocation décrit l'archétype « ${p.nom} ». Elle ne tient compte ni de votre patrimoine, ni de vos revenus, ni de vos objectifs, ni de votre horizon, et ne vise aucun produit financier. <a href="#avertissement">Lire l'avertissement</a></div>
       <p class="prose">${t.actifsPourquoi}</p>
 
       <div class="model"><span class="eyebrow">Portefeuille de référence</span><strong>${p.modele.nom}</strong><span class="muted">${p.modele.desc}</span></div>
 
       <div class="kpis">
-        <div><span class="eyebrow">Rendement attendu</span><span class="kpi">${fmt(st.ret, 1)} %</span><span class="muted">par an sur 10 ans, hors crypto-actifs<br>60/40 : ${fmt(rs.ret, 1)} %</span></div>
+        <div><span class="eyebrow">Rendement attendu</span><span class="kpi">${fmt(st.ret, 1)} %</span><span class="muted">hypothèse par an sur 10 ans, hors crypto-actifs, non garantie<br>60/40 : ${fmt(rs.ret, 1)} %</span></div>
         <div><span class="eyebrow">Actions</span><span class="kpi">${st.actions} %</span><span class="muted">du portefeuille<br>60/40 : ${rs.actions} %</span></div>
         <div><span class="eyebrow">Pire crise estimée</span><span class="kpi">${fmt(Math.min(...st.crises))} %</span><span class="muted">sur les trois épisodes<br>60/40 : ${fmt(Math.min(...rs.crises))} %</span></div>
+        <div><span class="eyebrow">Liquidité</span><span class="kpi">${st.liq} %</span><span class="muted">mobilisable en moins d'un mois · <span class="liq ${st.liq >= 90 ? "good" : st.liq >= 70 ? "info" : "warn"}">${st.liq >= 90 ? "élevée" : st.liq >= 70 ? "moyenne" : "faible"}</span><br>60/40 : ${rs.liq} %</span></div>
       </div>
 
       <div class="grid2" style="margin-top:20px">
@@ -1564,9 +1590,9 @@ window.TEXTES.OCIT = {
       </div>
 
       <div class="grid2" style="margin-top:20px">
-        <div class="panel"><h3>Vos actifs préférés</h3><div class="chips">${p.actifs.map(a => `<span>${a}</span>`).join("")}</div></div>
+        <div class="panel"><h3>Les actifs préférés de ce profil</h3><div class="chips">${p.actifs.map(a => `<span>${a}</span>`).join("")}</div></div>
         <div class="panel"><div class="callout"><span class="eyebrow">Garde-fou en une ligne</span><p>${p.gardeFou}</p></div>
-          <p class="muted small">Ces allocations décrivent un tempérament. Elles ne tiennent compte ni de votre patrimoine, ni de vos revenus, ni de votre horizon réel, et ne constituent pas un conseil en investissement.</p></div>
+          <p class="muted small">Les rendements attendus sont des hypothèses issues de publications de sociétés de gestion et d'estimations ; les pertes en crise sont des estimations historiques arrondies. Les performances passées ne préjugent pas des performances futures. Tout investissement comporte un risque de perte en capital.</p></div>
       </div>
     </section>`;
   }
@@ -1658,7 +1684,7 @@ window.TEXTES.OCIT = {
         </div>
         <div class="actions" style="margin-top:24px"><a class="btn" href="#test-complet">Refaire le test</a><a class="btn ghost" href="#profils">Voir les 16 profils</a></div>
       </section>
-      <p class="disclaimer" style="margin-top:40px">Ce test est un outil de connaissance de soi et de sensibilisation aux biais comportementaux. Il ne constitue ni un questionnaire d'adéquation réglementaire, ni un conseil en investissement. Il mesure votre tempérament face au risque, pas votre capacité financière à supporter des pertes. Aucune donnée n'est envoyée : vos réponses restent dans votre navigateur.</p>
+      <p class="disclaimer" style="margin-top:40px">Ce test est un outil pédagogique de connaissance de soi et de sensibilisation aux biais comportementaux. Il ne constitue ni un conseil en investissement, ni une recommandation personnalisée, ni une évaluation de l'adéquation au sens de la réglementation (MIF 2). Il mesure votre tempérament face au risque, pas votre capacité financière à supporter des pertes. Avant toute décision, consultez un professionnel habilité. Aucune donnée n'est envoyée : vos réponses restent dans votre navigateur. <a href="#avertissement">Avertissement complet</a></p>
     `);
     document.getElementById("copy").addEventListener("click", () => {
       const inp = document.getElementById("share-code"), t = document.getElementById("toast");
@@ -1721,17 +1747,45 @@ window.TEXTES.OCIT = {
       <section style="margin-top:48px"><h2>Les fondements</h2>
         <p class="prose muted" style="margin-top:12px">Théorie des perspectives et aversion aux pertes (Kahneman et Tversky, 1979) ; typologies d'investisseurs de Bailard, Biehl et Kaiser (1986) et de Pompian ; échelle de tolérance au risque de Grable et Lytton (1999) ; choix de loteries de Holt et Laury (2002) ; test de réflexion cognitive de Frederick (2005). Les liens entre biais et comportements s'appuient sur les travaux de Shefrin et Statman (1985), Barber et Odean (2000), Huberman (2001) et Kumar (2009).</p></section>
       <section style="margin-top:48px"><h2>Les allocations d'actifs</h2>
-        <p class="prose muted" style="margin-top:12px">Chaque profil reçoit une allocation naturelle sur quinze classes d'actifs, construite par écart à un portefeuille de référence documenté (Graham, Bogle, Browne, Dalio, Swensen, Buffett, Taleb, Faber…), et une inclinaison factorielle de sa poche actions. Les rendements attendus à dix ans proviennent des hypothèses de marché publiées par Amundi (mise à jour du second semestre 2026) et J.P. Morgan (2026), complétées d'estimations signalées comme telles. Les performances en crise sont des ordres de grandeur en euros, calculés classe par classe pour 2008, le krach de février-mars 2020 et 2022.</p>
-        <div class="table-wrap" style="margin-top:16px"><table class="mtable"><thead><tr><th>Classe d'actifs</th><th>Rendement attendu</th><th>Source</th><th>2008</th><th>Krach 2020</th><th>2022</th></tr></thead><tbody>
-          ${CL.map(c => `<tr><td>${c.nom}</td><td class="mono">${c.r === null ? "–" : c.r.toFixed(1).replace(".", ",") + " %"}</td><td>${c.rs}</td>${c.c.map(x => `<td class="mono">${fmt(x)} %</td>`).join("")}</tr>`).join("")}
+        <p class="prose muted" style="margin-top:12px">Chaque profil reçoit une allocation naturelle sur quinze classes d'actifs, construite par écart à un portefeuille de référence documenté (Graham, Bogle, Browne, Dalio, Swensen, Buffett, Taleb, Faber…), et une inclinaison factorielle de sa poche actions. Les rendements attendus à dix ans proviennent des hypothèses de marché publiées par Amundi (mise à jour du second semestre 2026) et J.P. Morgan (2026), complétées d'estimations signalées comme telles. Les performances en crise sont des ordres de grandeur en euros, calculés classe par classe pour 2008, le krach de février-mars 2020 et 2022. Pour l'immobilier non coté et le non coté financier, ce sont des pertes « économiques » : les valeurs publiées (SCPI, fonds non cotés) baissent moins et plus tard, car elles reposent sur des expertises périodiques. L'immobilier coté (foncières) se comporte comme des actions ; il n'est presque pas utilisé dans les allocations. L'indicateur de liquidité mesure la part du portefeuille mobilisable en moins d'un mois : élevée au-delà de 90 %, moyenne entre 70 % et 90 %, faible en dessous.</p>
+        <div class="table-wrap" style="margin-top:16px"><table class="mtable"><thead><tr><th>Classe d'actifs</th><th>Rendement attendu</th><th>Source</th><th>2008</th><th>Krach 2020</th><th>2022</th><th>Liquidité</th></tr></thead><tbody>
+          ${CL.map(c => `<tr><td>${c.nom}</td><td class="mono">${c.r === null ? "–" : c.r.toFixed(1).replace(".", ",") + " %"}</td><td>${c.rs}</td>${c.c.map(x => `<td class="mono">${fmt(x)} %</td>`).join("")}<td>${window.ILLIQUIDES.includes(c.id) ? "plus d'un mois" : "moins d'un mois"}</td></tr>`).join("")}
         </tbody></table></div></section>
       <section style="margin-top:48px"><h2>Sources</h2>
         <ul class="list prose" style="margin-top:12px">${window.SOURCES.map(x => `<li><a href="${x.u}" target="_blank" rel="noopener">${x.t}</a></li>`).join("")}</ul>
         <h3 style="margin-top:24px">Recherche citée</h3>
         <ul class="list prose muted" style="margin-top:12px">${window.RECHERCHE.map(x => `<li>${x}</li>`).join("")}</ul></section>
       <section style="margin-top:48px"><h2>Les limites</h2>
-        <p class="prose muted" style="margin-top:12px">Ce test décrit un tempérament ; il ne remplace ni un questionnaire d'adéquation réglementaire, ni un conseil en investissement. Les allocations sont illustratives. Les codes à quatre lettres simplifient des scores continus : regardez toujours l'intensité de chaque axe. La version 1.0 n'a pas encore fait l'objet d'une validation statistique sur un large échantillon.</p></section>
+        <p class="prose muted" style="margin-top:12px">Ce test décrit un tempérament ; il ne remplace ni un questionnaire d'adéquation réglementaire, ni un conseil en investissement. Les allocations sont illustratives. Les codes à quatre lettres simplifient des scores continus : regardez toujours l'intensité de chaque axe. La version actuelle n'a pas encore fait l'objet d'une validation statistique sur un large échantillon. <a href="#avertissement">Avertissement et mentions légales</a></p></section>
       <div class="actions" style="margin-top:32px"><a class="btn" href="#test-complet">Passer le test</a></div>`);
+  }
+
+  /* ---------- Avertissement et mentions légales ---------- */
+  function renderLegal() {
+    show(`<div class="sec-head"><span class="eyebrow">Avertissement</span><h1>Avertissement et mentions légales</h1>
+      <p class="muted">À lire avant d'utiliser les résultats d'Investype.</p></div>
+      <div class="legal prose">
+        <h2>1. Nature de l'outil</h2>
+        <p>Investype est un outil pédagogique et ludique de connaissance de soi. Il décrit un tempérament d'investisseur et sensibilise aux biais comportementaux à partir de vos réponses. Il est gratuit et ne donne lieu à aucune rémunération ni à aucune commercialisation de produits.</p>
+        <h2>2. Absence de conseil en investissement</h2>
+        <p>Les contenus d'Investype ne constituent ni un conseil en investissement au sens de l'article L. 321-1 du Code monétaire et financier, ni une recommandation personnalisée, ni une sollicitation, ni une offre d'achat ou de vente d'un instrument financier. Aucun instrument financier, fonds ou produit n'est recommandé.</p>
+        <p>Les profils, allocations types, actifs préférés et garde-fous décrivent des archétypes d'investisseurs. Ils ne tiennent compte ni de votre situation financière, patrimoniale et fiscale, ni de vos objectifs, ni de votre horizon de placement, ni de votre capacité à supporter des pertes.</p>
+        <h2>3. Ce n'est pas un questionnaire réglementaire</h2>
+        <p>Ce test ne remplace pas l'évaluation de l'adéquation ou du caractère approprié que tout prestataire de services d'investissement ou conseiller doit réaliser avant de vous recommander ou de vous vendre un produit, en application de la directive MIF 2.</p>
+        <h2>4. Chiffres et hypothèses</h2>
+        <p>Les rendements attendus sont des hypothèses de long terme issues de publications de sociétés de gestion (Amundi, J.P. Morgan Asset Management) et d'estimations signalées comme telles. Ils ne sont ni garantis, ni des prévisions. Les performances en période de crise sont des estimations historiques arrondies, calculées par classe d'actifs. Les performances passées ne préjugent pas des performances futures.</p>
+        <p>Tout investissement comporte un risque de perte en capital. Les actifs non cotés et l'immobilier non coté sont peu liquides et peuvent être difficiles à revendre. Les crypto-actifs sont très volatils et exposent à un risque de perte totale.</p>
+        <h2>5. Avant toute décision</h2>
+        <p>Avant toute décision d'investissement, adressez-vous à un professionnel habilité : établissement agréé, ou conseiller en investissements financiers immatriculé à l'ORIAS. Vous pouvez vérifier l'autorisation d'un intermédiaire sur le registre de l'ORIAS et consulter les listes noires publiées par l'Autorité des marchés financiers.</p>
+        <h2>6. Personnes citées</h2>
+        <p>Les investisseurs, auteurs et institutions cités illustrent des styles d'investissement documentés. Leur mention n'implique aucune affiliation, approbation ou recommandation de leur part.</p>
+        <h2>7. Données personnelles</h2>
+        <p>L'éditeur ne collecte aucune donnée personnelle. Vos réponses et votre dernier résultat sont enregistrés uniquement dans votre navigateur. Le code de résultat n'est partagé que si vous choisissez de le transmettre. L'hébergeur (GitHub) et le service de polices de caractères (Google Fonts) peuvent traiter l'adresse IP des visiteurs selon leurs propres politiques de confidentialité. Le site n'utilise aucun cookie.</p>
+        <h2>8. Éditeur et hébergement</h2>
+        <p>Investype est un projet personnel en phase de test, publié à titre non professionnel par Alexandre Hezez et partagé avec un cercle restreint. Il ne donne lieu à aucune rémunération. Hébergement : GitHub Pages, GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.</p>
+        <p>Conception, questions, barème, noms et descriptions des profils : © 2026 QuidHabes. Toute reproduction sans autorisation est interdite.</p>
+      </div>
+      <div class="actions" style="margin-top:32px"><a class="btn" href="#test-complet">Passer le test</a><a class="btn ghost" href="#methode">La méthode</a></div>`);
   }
 
   window.addEventListener("hashchange", route);
