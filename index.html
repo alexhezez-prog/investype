@@ -6,6 +6,12 @@
 <title>Investype</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Investype">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f3f5f6">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="description" content="Investype : 16 profils pour découvrir quel investisseur vous êtes vraiment, vos biais et l'allocation type qui illustre votre tempérament.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -335,6 +341,14 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 .pscale { display: flex; gap: 4px; }
 .pscale i { flex: 1; height: 6px; border-radius: 3px; background: var(--sunken); }
 .pscale i.on { background: var(--fam); }
+
+/* Version 1.4 : ajustements téléphone */
+@media (hover: none) { .kbd-hint { display: none; } }
+@media (max-width: 560px) {
+  .top .wrap { gap: 10px; }
+  .nav { flex-wrap: nowrap; gap: 2px; }
+  .nav a { padding: 6px 8px; font-size: 0.82rem; white-space: nowrap; }
+}
 
 </style>
 </head>
