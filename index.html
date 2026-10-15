@@ -318,6 +318,20 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 @media (max-width: 980px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 480px) { .kpis { grid-template-columns: minmax(0, 1fr); } }
 
+/* Version 1.3 : facteurs de style */
+.frow { display: grid; gap: 4px; padding-block: 6px; }
+.fhead { display: flex; justify-content: space-between; gap: 12px; font-size: 0.9rem; }
+.fword { font-family: var(--font-data); font-size: 0.75rem; color: var(--fam); font-weight: 600; text-align: right; }
+.fword.muted { color: var(--muted); font-weight: 400; }
+.ftrack { position: relative; height: 10px; border-radius: 5px; background: var(--sunken); }
+.fmid { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--muted); opacity: .6; }
+.ffill { position: absolute; top: 0; bottom: 0; border-radius: 5px; background: var(--fam); }
+.fends { display: flex; justify-content: space-between; font-family: var(--font-data); font-size: 0.68rem; color: var(--muted); }
+.fneutral { font-size: 0.92rem; padding: 12px 14px; border-radius: 10px; background: var(--sunken); }
+.fdetails summary { cursor: pointer; font-size: 0.88rem; font-weight: 600; }
+.fdetails[open] summary { margin-bottom: 10px; }
+.fdetails .list li { font-size: 0.86rem; }
+
 </style>
 </head>
 <body>
@@ -339,7 +353,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 
 <footer>
   <div class="wrap">
-    <span>© 2026 QuidHabes · Alexandre Hezez · Version 1.2</span>
+    <span>© 2026 QuidHabes · Alexandre Hezez · Version 1.3</span>
     <span>Outil pédagogique, pas un conseil en investissement. <a href="#avertissement">Avertissement et mentions légales</a></span>
   </div>
 </footer>
@@ -488,6 +502,7 @@ window.QUESTIONS = [
      (Cambridge Associates) ; MSCI ACWI −42,2 % en 2008 en dollars.
    - Immobilier non coté et non coté financier : pertes « économiques » estimées. Les valeurs publiées (SCPI, fonds non cotés)
      baissent moins et plus tard, car elles reposent sur des expertises périodiques (effet de lissage).
+   - Dette privée : pertes estimées par analogie avec les prêts à effet de levier ; ses taux variables l'ont protégée en 2022.
    - Les autres valeurs sont des ordres de grandeur estimés à partir d'indices représentatifs. Elles servent à comparer
      les profils entre eux, pas à prévoir une perte. */
 
@@ -518,8 +533,10 @@ window.CLASSES = [
     c: [10, -3, 6] },
   { id: "MATP",   nom: "Matières premières",                   court: "Mat. premières",   groupe: "Actifs réels",   couleur: "#d98d4c", r: 3.8,  rs: "J.P. Morgan",
     c: [-40, -25, 20] },
-  { id: "PRIV",   nom: "Non coté (capital-investissement, dette privée)", court: "Non coté", groupe: "Alternatifs", couleur: "#6a55a8", r: 9.0,  rs: "est.",
+  { id: "PE",     nom: "Capital-investissement (private equity, capital-risque)", court: "Private equity", groupe: "Non coté", couleur: "#6a55a8", r: 10.1, rs: "Amundi",
     c: [-30, -20, -10] },
+  { id: "DETTEP", nom: "Dette privée (prêts directs aux entreprises)", court: "Dette privée", groupe: "Non coté", couleur: "#8f7cc4", r: 7.3, rs: "Amundi",
+    c: [-20, -10, 0] },
   { id: "ALT",    nom: "Stratégies alternatives liquides (tendance, macro, neutre au marché)", court: "Stratégies alt.", groupe: "Alternatifs", couleur: "#9a86d6", r: 5.3, rs: "Amundi",
     c: [10, -3, 12] },
   { id: "CRYPTO", nom: "Crypto-actifs",                        court: "Crypto",           groupe: "Alternatifs",    couleur: "#c4506f", r: null, rs: "non estimé",
@@ -527,7 +544,7 @@ window.CLASSES = [
 ];
 
 /* Classes dont la revente prend en général plus d'un mois (liquidité faible) */
-window.ILLIQUIDES = ["IMMONC", "PRIV"];
+window.ILLIQUIDES = ["IMMONC", "PE", "DETTEP"];
 
 window.CRISES = [
   { id: "2008", nom: "Crise financière", periode: "Année 2008" },
@@ -536,14 +553,39 @@ window.CRISES = [
 ];
 
 window.FACTEURS = [
-  { id: "value", nom: "Value" },
-  { id: "qualite", nom: "Qualité" },
-  { id: "croissance", nom: "Croissance" },
-  { id: "momentum", nom: "Momentum" },
-  { id: "faibleVol", nom: "Faible volatilité" },
-  { id: "dividende", nom: "Dividende" },
-  { id: "taille", nom: "Petites capitalisations" }
+  { id: "vc", nom: "Value ou croissance", gauche: "Croissance", droite: "Value",
+    def: "Un seul axe : la value achète des actions bon marché au regard de leurs fondamentaux (actif net, bénéfices) ; la croissance, des entreprises chères dont on attend une forte progression des bénéfices. Ce sont les deux côtés d'une même mesure.",
+    recherche: "Basu (1977) ; Fama et French (1992, 1993)",
+    crises: "Value : forte résistance en 2022, mais plus de dix ans de sous-performance de 2007 à 2020. Croissance : grande gagnante des années 2010, très pénalisée par la hausse des taux de 2022.",
+    jpm: "Value : 7,7 % (actions américaines, en dollars), contre 6,7 % pour le marché" },
+  { id: "qualite", nom: "Qualité", gauche: "Sous-pondéré", droite: "Surpondéré",
+    def: "Entreprises rentables, peu endettées, aux bénéfices stables.",
+    recherche: "Novy-Marx (2013) ; Fama et French (2015) ; Asness, Frazzini et Pedersen (2019)",
+    crises: "A bien résisté en 2008 et en 2020 ; a déçu en 2022, car les indices qualité étaient chargés de valeurs technologiques.",
+    jpm: "6,7 %, au niveau du marché" },
+  { id: "momentum", nom: "Momentum", gauche: "Sous-pondéré", droite: "Surpondéré",
+    def: "Titres qui ont le plus progressé sur les 3 à 12 derniers mois.",
+    recherche: "Jegadeesh et Titman (1993) ; Carhart (1997) ; Daniel et Moskowitz (2016)",
+    crises: "Prime robuste dans le temps et entre classes d'actifs, mais sujette à des krachs violents lors des retournements, comme au printemps 2009.",
+    jpm: "7,6 %" },
+  { id: "faibleVol", nom: "Faible volatilité", gauche: "Sous-pondéré", droite: "Surpondéré",
+    def: "Actions les moins volatiles ou les moins sensibles au marché. Paradoxe documenté : à long terme, elles ont fait aussi bien que le marché avec moins de risque.",
+    recherche: "Haugen et Heins (1975) ; Ang et al. (2006) ; Baker, Bradley et Wurgler (2011) ; Frazzini et Pedersen (2014)",
+    crises: "A amorti les baisses de 2008 et de 2022 ; a fortement sous-performé lors du rebond de 2020.",
+    jpm: "7,0 %" },
+  { id: "taille", nom: "Petites capitalisations", gauche: "Sous-pondéré", droite: "Surpondéré",
+    def: "Sociétés de petite taille boursière.",
+    recherche: "Banz (1981) ; Fama et French (1993) ; Asness et al. (2018)",
+    crises: "Prime historique fragile seule, plus nette sur les petites sociétés de qualité ; baisses plus fortes que le marché en 2008 et en 2020.",
+    jpm: "6,9 % (petites capitalisations américaines)" },
+  { id: "dividende", nom: "Rendement du dividende", gauche: "Sous-pondéré", droite: "Surpondéré",
+    def: "Sociétés qui distribuent un dividende élevé. Ce n'est pas une prime indépendante dans les modèles académiques : elle recoupe largement la value et la qualité, mais elle traduit une préférence très répandue des épargnants pour le revenu.",
+    recherche: "Shefrin et Statman (1984) ; Hartzmark et Solomon (2019)",
+    crises: "A bien tenu en 2022 ; a souffert en 2020 avec les suspensions de dividendes des banques et des pétrolières.",
+    jpm: "7,7 %" }
 ];
+
+window.SOURCES_FACTEURS = "Hypothèses J.P. Morgan Asset Management, 2026 Long-Term Capital Market Assumptions : rendements composés annuels attendus des facteurs sur les actions américaines, en dollars. Comportements en crise : indices MSCI World de style, ordres de grandeur.";
 
 window.SOURCES = [
   { t: "Amundi Investment Institute, Capital Market Assumptions, mise à jour H2 2026", u: "https://research-center.amundi.com/files/nuxeo/dl/6df1bf9d-44de-412e-aa5c-4578e393e8b0" },
@@ -567,8 +609,25 @@ window.RECHERCHE = [
   "Barber, B. et Odean, T. (2000), Trading Is Hazardous to Your Wealth, Journal of Finance.",
   "Huberman, G. (2001), Familiarity Breeds Investment, Review of Financial Studies.",
   "Faber, M. (2007), A Quantitative Approach to Tactical Asset Allocation, Journal of Wealth Management.",
+  "Barber, B. et Odean, T. (2008), All That Glitters: The Effect of Attention and News on the Buying Behavior of Individual and Institutional Investors, Review of Financial Studies.",
   "Kumar, A. (2009), Who Gambles in the Stock Market?, Journal of Finance.",
   "Asness, C., Moskowitz, T. et Pedersen, L. (2013), Value and Momentum Everywhere, Journal of Finance.",
+  "Basu, S. (1977), Investment Performance of Common Stocks in Relation to Their Price-Earnings Ratios, Journal of Finance.",
+  "Banz, R. (1981), The Relationship between Return and Market Value of Common Stocks, Journal of Financial Economics.",
+  "Shefrin, H. et Statman, M. (1984), Explaining Investor Preference for Cash Dividends, Journal of Financial Economics.",
+  "Haugen, R. et Heins, A. J. (1975), Risk and the Rate of Return on Financial Assets, Journal of Financial and Quantitative Analysis.",
+  "Fama, E. et French, K. (1993), Common Risk Factors in the Returns on Stocks and Bonds, Journal of Financial Economics.",
+  "Carhart, M. (1997), On Persistence in Mutual Fund Performance, Journal of Finance.",
+  "Ang, A., Hodrick, R., Xing, Y. et Zhang, X. (2006), The Cross-Section of Volatility and Expected Returns, Journal of Finance.",
+  "Baker, M., Bradley, B. et Wurgler, J. (2011), Benchmarks as Limits to Arbitrage: Understanding the Low-Volatility Anomaly, Financial Analysts Journal.",
+  "Bali, T., Cakici, N. et Whitelaw, R. (2011), Maxing Out: Stocks as Lotteries and the Cross-Section of Expected Returns, Journal of Financial Economics.",
+  "Novy-Marx, R. (2013), The Other Side of Value: The Gross Profitability Premium, Journal of Financial Economics.",
+  "Frazzini, A. et Pedersen, L. (2014), Betting Against Beta, Journal of Financial Economics.",
+  "Fama, E. et French, K. (2015), A Five-Factor Asset Pricing Model, Journal of Financial Economics.",
+  "Daniel, K. et Moskowitz, T. (2016), Momentum Crashes, Journal of Financial Economics.",
+  "Asness, C., Frazzini, A., Israel, R., Moskowitz, T. et Pedersen, L. (2018), Size Matters, If You Control Your Junk, Journal of Financial Economics.",
+  "Asness, C., Frazzini, A. et Pedersen, L. (2019), Quality Minus Junk, Review of Accounting Studies.",
+  "Hartzmark, S. et Solomon, D. (2019), The Dividend Disconnect, Journal of Finance.",
   "Graham, B., The Intelligent Investor (1949, éditions révisées).",
   "Browne, H., Fail-Safe Investing (1999).",
   "Swensen, D., Pioneering Portfolio Management (2000).",
@@ -580,12 +639,12 @@ window.RECHERCHE = [
 /* Profils d'investisseurs — données des 16 profils
    © QuidHabes — Alexandre Hezez, 2026. Version 1.2
    alloc : poids en % par classe d'actifs (voir marches.js), total 100.
-   facteurs : inclinaison de la poche actions, de −2 (fortement sous-pondéré) à +2 (fortement surpondéré).
+   facteurs : inclinaison de la poche actions, de −2 à +2 ; pour vc, −2 = croissance marquée, +2 = value marquée.
    modele : portefeuille de référence documenté dont l'allocation s'écarte. */
 
 window.REFERENCE = {
   nom: "Équilibré 60/40",
-  alloc: { MON: 5, GOVC: 10, GOVL: 10, INFL: 0, IG: 15, HY: 0, ACTD: 50, ACTE: 7, SMALL: 3, IMMOC: 0, IMMONC: 0, OR: 0, MATP: 0, PRIV: 0, ALT: 0, CRYPTO: 0 }
+  alloc: { MON: 5, GOVC: 10, GOVL: 10, INFL: 0, IG: 15, HY: 0, ACTD: 50, ACTE: 7, SMALL: 3, IMMOC: 0, IMMONC: 0, OR: 0, MATP: 0, PE: 0, DETTEP: 0, ALT: 0, CRYPTO: 0 }
 };
 
 window.FAMILLES = {
@@ -595,7 +654,7 @@ window.FAMILLES = {
   OC: { nom: "Les Opportunistes",desc: "Offensive et court terme : ils cherchent le mouvement et saisissent les occasions." }
 };
 
-const Z = { MON: 0, GOVC: 0, GOVL: 0, INFL: 0, IG: 0, HY: 0, ACTD: 0, ACTE: 0, SMALL: 0, IMMOC: 0, IMMONC: 0, OR: 0, MATP: 0, PRIV: 0, ALT: 0, CRYPTO: 0 };
+const Z = { MON: 0, GOVC: 0, GOVL: 0, INFL: 0, IG: 0, HY: 0, ACTD: 0, ACTE: 0, SMALL: 0, IMMOC: 0, IMMONC: 0, OR: 0, MATP: 0, PE: 0, DETTEP: 0, ALT: 0, CRYPTO: 0 };
 const A = o => Object.assign({}, Z, o);
 
 window.PROFILS = {
@@ -610,7 +669,8 @@ window.PROFILS = {
     angleMort: "Les sociétés de croissance de qualité, jugées trop chères trop tôt.",
     modele: { nom: "L'investisseur « entreprenant » de Benjamin Graham", desc: "Entre 25 % et 75 % d'actions, des titres achetés sous leur valeur intrinsèque, une solide poche obligataire." },
     alloc: A({ MON: 8, GOVC: 10, GOVL: 5, INFL: 5, IG: 12, ACTD: 30, ACTE: 5, SMALL: 10, IMMONC: 8, OR: 7 }),
-    facteurs: { value: 2, qualite: 1, croissance: -2, momentum: -1, faibleVol: 1, dividende: 1, taille: 1 },
+    facteurs: { vc: 2, qualite: 1, momentum: -1, faibleVol: 1, taille: 1, dividende: 1 },
+    facteursPourquoi: "Forte inclinaison value, dans la lignée de Basu (1977) et de Fama et French (1992), corrigée par un filtre qualité pour éviter les pièges de valeur (Novy-Marx, 2013). Le momentum est sous-pondéré : vous achetez ce qui a baissé.",
     note: "La poche actions privilégie les titres décotés et les holdings ; elle reste entre les bornes de 25 % et 75 % fixées par Graham.",
     gardeFou: "Plafonner chaque titre décoté à 5 % du portefeuille et garder au moins 15 % d'actions mondiales indicielles.",
     esprit: "Benjamin Graham, Walter Schloss"
@@ -626,7 +686,8 @@ window.PROFILS = {
     angleMort: "Les actifs réels et les stratégies décorrélées, qui protègent quand le modèle 60/40 casse.",
     modele: { nom: "Le portefeuille indiciel de John Bogle", desc: "Quelques fonds indiciels à bas coût, actions mondiales et obligations, rééquilibrés à date fixe." },
     alloc: A({ MON: 5, GOVC: 10, GOVL: 10, INFL: 5, IG: 10, ACTD: 45, ACTE: 8, SMALL: 2, IMMONC: 3, OR: 2 }),
-    facteurs: { value: 0, qualite: 0, croissance: 0, momentum: 0, faibleVol: 0, dividende: 0, taille: 0 },
+    facteurs: { vc: 0, qualite: 0, momentum: 0, faibleVol: 0, taille: 0, dividende: 0 },
+    facteursPourquoi: "Aucune inclinaison : la poche actions suit la pondération de marché d'un indice mondial. C'est le choix de la gestion indicielle, qui renonce à toute prime de style pour minimiser les coûts et les erreurs de jugement.",
     note: "La poche actions réplique le marché mondial, sans inclinaison de style.",
     gardeFou: "Porter à 10 % la part des actifs qui ne dépendent ni des taux ni des bénéfices (or, indexées, immobilier).",
     esprit: "John Bogle, Burton Malkiel"
@@ -641,8 +702,9 @@ window.PROFILS = {
     actifs: ["Immobilier locatif", "Terres agricoles et forêts", "Or physique", "Participations dans des entreprises familiales"],
     angleMort: "Les actions mondiales cotées, liquides et diversifiées.",
     modele: { nom: "Le patrimoine type des ménages français", desc: "L'immobilier représente environ 62 % du patrimoine brut des ménages (Insee, 2021) ; le patrimoine financier, 21 %." },
-    alloc: A({ MON: 8, GOVL: 5, INFL: 2, IG: 5, ACTD: 15, SMALL: 5, IMMONC: 40, OR: 10, PRIV: 10 }),
-    facteurs: { value: 1, qualite: 1, croissance: -1, momentum: -1, faibleVol: 1, dividende: 2, taille: 1 },
+    alloc: A({ MON: 8, GOVL: 5, INFL: 2, IG: 5, ACTD: 15, SMALL: 5, IMMONC: 40, OR: 10, PE: 10 }),
+    facteurs: { vc: 1, qualite: 1, momentum: -1, faibleVol: 1, taille: 1, dividende: 2 },
+    facteursPourquoi: "Préférence marquée pour le dividende, que Shefrin et Statman (1984) puis Hartzmark et Solomon (2019) relient au goût des épargnants pour le revenu ; petites et moyennes entreprises familiales connues, souvent bon marché.",
     note: "Le non coté correspond aux participations dans des entreprises familiales ; la poche actions a un fort biais domestique.",
     gardeFou: "Ramener l'immobilier sous 30 % et porter les actions cotées internationales à au moins 25 %.",
     esprit: "Les grandes familles patrimoniales"
@@ -657,8 +719,9 @@ window.PROFILS = {
     actifs: ["Fonds en euros", "Immobilier collectif (SCPI)", "Obligations à rendement régulier", "Livrets réglementés"],
     angleMort: "Les actions sur longue période, principal moteur de croissance réelle du capital.",
     modele: { nom: "L'investisseur « défensif » de Benjamin Graham", desc: "Obligations de qualité et grandes valeurs à dividende régulier, au moins 25 % d'actions." },
-    alloc: A({ MON: 25, GOVC: 10, GOVL: 5, INFL: 5, IG: 15, HY: 3, ACTD: 20, IMMONC: 12, OR: 5 }),
-    facteurs: { value: 1, qualite: 1, croissance: -1, momentum: 0, faibleVol: 2, dividende: 2, taille: -1 },
+    alloc: A({ MON: 25, GOVC: 10, GOVL: 5, INFL: 5, IG: 15, ACTD: 20, IMMONC: 12, OR: 5, DETTEP: 3 }),
+    facteurs: { vc: 1, qualite: 1, momentum: 0, faibleVol: 2, taille: -1, dividende: 2 },
+    facteursPourquoi: "Grandes valeurs stables et distributrices : forte inclinaison faible volatilité, dont la recherche montre qu'elle a historiquement offert un rendement proche du marché avec moins de risque (Baker, Bradley et Wurgler, 2011), et préférence pour le dividende.",
     note: "Le monétaire inclut les livrets et le fonds en euros, qui pèsent environ 55 % des placements financiers des ménages hors participations non cotées (Banque de France, fin 2025).",
     gardeFou: "Limiter le monétaire à 15 % et viser au moins 25 % d'actions pour tout horizon supérieur à huit ans.",
     esprit: "Benjamin Graham, l'épargnant prudent"
@@ -674,7 +737,8 @@ window.PROFILS = {
     angleMort: "Le rendement de long terme des actions, sacrifié pour une courbe lisse.",
     modele: { nom: "La parité des risques (All Weather de Ray Dalio)", desc: "Chaque moteur économique pèse le même risque : 30 % d'actions, 55 % d'obligations, 15 % d'or et de matières premières dans la version grand public." },
     alloc: A({ MON: 10, GOVC: 15, GOVL: 15, INFL: 10, IG: 10, ACTD: 20, OR: 5, MATP: 5, ALT: 10 }),
-    facteurs: { value: 1, qualite: 1, croissance: -1, momentum: 0, faibleVol: 2, dividende: 0, taille: -1 },
+    facteurs: { vc: 1, qualite: 1, momentum: 0, faibleVol: 2, taille: -1, dividende: 0 },
+    facteursPourquoi: "Recherche de la volatilité la plus faible possible, cohérente avec la logique « betting against beta » de Frazzini et Pedersen (2014) ; légère inclinaison value et qualité pour la marge de sécurité.",
     note: "Les stratégies alternatives sont des stratégies de valeur relative et neutres au marché.",
     gardeFou: "Tester chaque stratégie sur 2008 et mars 2020 avant de l'augmenter, et ne jamais emprunter pour l'amplifier.",
     esprit: "Edward Thorp"
@@ -690,7 +754,8 @@ window.PROFILS = {
     angleMort: "Le coût cumulé des protections et des allers-retours.",
     modele: { nom: "L'allocation tactique de Mebane Faber (2007)", desc: "Un portefeuille diversifié dont chaque classe sort du marché quand son prix passe sous sa moyenne de dix mois." },
     alloc: A({ MON: 15, GOVC: 15, GOVL: 5, INFL: 5, IG: 10, ACTD: 30, ACTE: 5, OR: 5, ALT: 10 }),
-    facteurs: { value: 0, qualite: 1, croissance: 0, momentum: 1, faibleVol: 1, dividende: 0, taille: -1 },
+    facteurs: { vc: 0, qualite: 1, momentum: 1, faibleVol: 1, taille: -1, dividende: 0 },
+    facteursPourquoi: "Inclinaison momentum modérée, prolongement naturel du suivi de tendance, tempérée par la qualité et la faible volatilité pour limiter les krachs de momentum décrits par Daniel et Moskowitz (2016).",
     note: "Le monétaire élevé correspond aux positions sorties du marché par le filtre de tendance.",
     gardeFou: "Figer 50 % du portefeuille en allocation stratégique, hors pilotage tactique.",
     esprit: "Mebane Faber, les gérants flexibles"
@@ -706,7 +771,8 @@ window.PROFILS = {
     angleMort: "La performance des actions dans les phases d'euphorie, souvent les plus longues.",
     modele: { nom: "Le Portefeuille permanent de Harry Browne", desc: "Quatre quarts égaux : actions, obligations longues, or et liquidités, pour traverser tous les régimes économiques." },
     alloc: A({ MON: 25, GOVC: 5, GOVL: 20, ACTD: 20, SMALL: 5, OR: 20, ALT: 5 }),
-    facteurs: { value: 1, qualite: 2, croissance: -1, momentum: -1, faibleVol: 2, dividende: 1, taille: 0 },
+    facteurs: { vc: 1, qualite: 2, momentum: -1, faibleVol: 2, taille: 0, dividende: 1 },
+    facteursPourquoi: "Qualité et faible volatilité, les deux facteurs qui ont le mieux résisté en 2008 et en 2020 ; momentum sous-pondéré, car vous vendez les titres dont la hausse vous paraît excessive.",
     note: "Une allocation proche des quatre quarts de Browne, avec une petite poche de stratégies de couverture.",
     gardeFou: "Ne jamais descendre sous 25 % d'actions, même quand le marché paraît cher.",
     esprit: "Harry Browne, les investisseurs de fin de cycle"
@@ -722,7 +788,8 @@ window.PROFILS = {
     angleMort: "L'effet du temps et du réinvestissement, qui récompense l'inaction.",
     modele: { nom: "L'épargne financière des ménages français", desc: "Dépôts, livrets et fonds en euros représentent l'essentiel des placements financiers des ménages (Banque de France, fin 2025)." },
     alloc: A({ MON: 40, GOVC: 10, IG: 10, ACTD: 25, IMMONC: 10, OR: 5 }),
-    facteurs: { value: 0, qualite: 1, croissance: 0, momentum: 1, faibleVol: 1, dividende: 1, taille: -2 },
+    facteurs: { vc: 0, qualite: 1, momentum: 1, faibleVol: 1, taille: -2, dividende: 1 },
+    facteursPourquoi: "Grandes capitalisations très médiatisées : Barber et Odean (2008) ont montré que les particuliers achètent les titres qui attirent l'attention, ce qui crée une exposition implicite au momentum et un fort biais vers les grandes valeurs domestiques.",
     note: "La poche actions se concentre sur les grandes valeurs les plus médiatisées, avec un fort biais domestique.",
     gardeFou: "Programmer des versements mensuels automatiques et s'interdire toute vente dans les 48 heures suivant une forte baisse.",
     esprit: "L'épargnant informé"
@@ -737,8 +804,9 @@ window.PROFILS = {
     actifs: ["Petites capitalisations décotées", "Situations spéciales (restructurations, scissions)", "Dette à haut rendement décotée", "Marchés émergents délaissés"],
     angleMort: "Les grandes valeurs de croissance chères mais durablement gagnantes.",
     modele: { nom: "Les primes value et taille de Fama et French (1992)", desc: "Les actions bon marché et les petites capitalisations ont historiquement offert une prime de rendement, au prix de longues traversées du désert." },
-    alloc: A({ MON: 5, GOVC: 5, HY: 10, ACTD: 30, ACTE: 10, SMALL: 25, IMMONC: 5, OR: 5, PRIV: 5 }),
-    facteurs: { value: 2, qualite: 0, croissance: -2, momentum: -2, faibleVol: 0, dividende: 1, taille: 2 },
+    alloc: A({ MON: 5, GOVC: 5, HY: 10, ACTD: 30, ACTE: 10, SMALL: 25, IMMONC: 5, OR: 5, DETTEP: 5 }),
+    facteurs: { vc: 2, qualite: 0, momentum: -2, faibleVol: 0, taille: 2, dividende: 1 },
+    facteursPourquoi: "Exposition maximale aux primes value et taille de Fama et French (1993), et momentum négatif par construction : vous achetez les perdants. Asness et al. (2018) montrent que la prime de taille n'est solide que sur les petites sociétés de qualité, d'où l'intérêt d'un filtre.",
     note: "La poche actions est fortement inclinée vers les titres décotés et les petites capitalisations.",
     gardeFou: "Diversifier sur au moins 20 positions et garder 20 % d'actions mondiales sans inclinaison de style.",
     esprit: "John Templeton, Seth Klarman"
@@ -753,8 +821,9 @@ window.PROFILS = {
     actifs: ["Actions de qualité et de croissance", "ETF actions mondiales", "Capital-investissement", "Leaders sectoriels"],
     angleMort: "La sensibilité aux taux des valorisations élevées.",
     modele: { nom: "La règle 90/10 de Warren Buffett", desc: "Dans sa lettre aux actionnaires de 2013 : 90 % dans un fonds indiciel d'actions à bas coût, 10 % en obligations d'État courtes." },
-    alloc: A({ GOVC: 10, ACTD: 65, ACTE: 10, SMALL: 5, PRIV: 10 }),
-    facteurs: { value: -1, qualite: 2, croissance: 1, momentum: 1, faibleVol: 0, dividende: 0, taille: -1 },
+    alloc: A({ GOVC: 10, ACTD: 65, ACTE: 10, SMALL: 5, PE: 10 }),
+    facteurs: { vc: -1, qualite: 2, momentum: 1, faibleVol: 0, taille: -1, dividende: 0 },
+    facteursPourquoi: "Facteur qualité dominant, fondé sur la rentabilité (Novy-Marx, 2013 ; Asness, Frazzini et Pedersen, 2019), avec une inclinaison croissance et momentum : vous détenez les leaders dont les bénéfices progressent.",
     note: "La poche actions privilégie les entreprises de qualité à forte rentabilité, détenues longtemps.",
     gardeFou: "Plafonner le premier secteur du portefeuille à 30 % et le premier titre à 8 %.",
     esprit: "Warren Buffett, Philip Fisher, Terry Smith"
@@ -769,8 +838,9 @@ window.PROFILS = {
     actifs: ["Capital-risque et non coté", "Valeurs technologiques émergentes", "Petites capitalisations innovantes", "Crypto-actifs"],
     angleMort: "La valorisation : une bonne idée peut être un mauvais investissement.",
     modele: { nom: "Le modèle des fonds de dotation (David Swensen, Yale)", desc: "Une large part d'actifs non cotés et de stratégies alternatives, rendue possible par un horizon très long et l'absence de besoin de liquidité." },
-    alloc: A({ MON: 5, GOVC: 5, ACTD: 25, ACTE: 10, SMALL: 10, IMMONC: 5, PRIV: 30, ALT: 5, CRYPTO: 5 }),
-    facteurs: { value: -2, qualite: 0, croissance: 2, momentum: 1, faibleVol: -2, dividende: -2, taille: 1 },
+    alloc: A({ MON: 5, GOVC: 5, ACTD: 25, ACTE: 10, SMALL: 10, IMMONC: 5, PE: 30, ALT: 5, CRYPTO: 5 }),
+    facteurs: { vc: -2, qualite: 0, momentum: 1, faibleVol: -2, taille: 1, dividende: -2 },
+    facteursPourquoi: "Croissance marquée, forte volatilité et absence de dividende : le profil des entreprises jeunes. La recherche montre que les titres très volatils ont en moyenne déçu (Ang et al., 2006) : c'est le prix de l'asymétrie que vous recherchez.",
     note: "Le non coté est majoritairement du capital-risque et du capital-développement.",
     gardeFou: "Limiter le non coté à 20 % tant que votre patrimoine n'est pas durablement à l'abri d'un besoin de liquidité.",
     esprit: "David Swensen, Georges Doriot"
@@ -785,8 +855,9 @@ window.PROFILS = {
     actifs: ["ETF thématiques (intelligence artificielle, énergie, santé)", "Valeurs technologiques", "Infrastructures de la transition", "Actions émergentes de croissance"],
     angleMort: "Les secteurs ennuyeux et peu médiatisés, souvent mieux valorisés.",
     modele: { nom: "L'approche cœur-satellite", desc: "Un cœur indiciel diversifié, entouré de satellites thématiques qui portent les convictions." },
-    alloc: A({ MON: 5, GOVC: 5, IG: 5, ACTD: 55, ACTE: 10, SMALL: 10, IMMONC: 2, PRIV: 5, CRYPTO: 3 }),
-    facteurs: { value: -2, qualite: 0, croissance: 2, momentum: 2, faibleVol: -1, dividende: -1, taille: 0 },
+    alloc: A({ MON: 5, GOVC: 5, IG: 5, ACTD: 55, ACTE: 10, SMALL: 10, IMMONC: 2, PE: 5, CRYPTO: 3 }),
+    facteurs: { vc: -2, qualite: 0, momentum: 2, faibleVol: -1, taille: 0, dividende: -1 },
+    facteursPourquoi: "Croissance et momentum dominent, car les fonds thématiques achètent les secteurs en vogue. Cette double exposition rend le portefeuille vulnérable aux hausses de taux, comme en 2022.",
     note: "Environ la moitié de la poche actions est investie en fonds thématiques ; le reste forme le cœur indiciel.",
     gardeFou: "Ramener les satellites thématiques à 25 % du portefeuille et garder un cœur indiciel d'au moins 40 %.",
     esprit: "Les gérants thématiques"
@@ -802,7 +873,8 @@ window.PROFILS = {
     angleMort: "La puissance des tendances qui durent plus longtemps que les fondamentaux ne le justifient.",
     modele: { nom: "Les fonds global macro", desc: "Des positions directionnelles sur toutes les classes d'actifs, construites à partir de scénarios économiques." },
     alloc: A({ MON: 15, GOVC: 5, GOVL: 15, INFL: 10, HY: 5, ACTD: 15, ACTE: 10, OR: 10, MATP: 5, ALT: 10 }),
-    facteurs: { value: 1, qualite: 0, croissance: 0, momentum: 0, faibleVol: 0, dividende: 0, taille: 0 },
+    facteurs: { vc: 1, qualite: 0, momentum: 0, faibleVol: 0, taille: 0, dividende: 0 },
+    facteursPourquoi: "Peu d'inclinaisons de style : vos paris se jouent entre classes d'actifs, pays et devises plutôt qu'entre styles d'actions. Légère préférence value, cohérente avec une lecture des valorisations relatives.",
     note: "L'allocation représente une position moyenne ; dans la pratique, elle varie fortement selon le scénario retenu.",
     gardeFou: "Plafonner à 2 % du portefeuille la perte acceptable par idée, et couper sans débat.",
     esprit: "George Soros, Stanley Druckenmiller"
@@ -818,7 +890,8 @@ window.PROFILS = {
     angleMort: "Ce que les données ne contiennent pas encore.",
     modele: { nom: "Le suivi de tendance et l'investissement factoriel", desc: "Value et momentum fonctionnent sur toutes les classes d'actifs (Asness, Moskowitz et Pedersen, 2013) ; le suivi de tendance a gagné en 2008 et en 2022." },
     alloc: A({ MON: 10, GOVC: 10, GOVL: 10, INFL: 5, ACTD: 30, ACTE: 5, OR: 5, MATP: 5, ALT: 20 }),
-    facteurs: { value: 1, qualite: 1, croissance: 0, momentum: 2, faibleVol: 1, dividende: 0, taille: 0 },
+    facteurs: { vc: 1, qualite: 1, momentum: 2, faibleVol: 1, taille: 0, dividende: 0 },
+    facteursPourquoi: "Combinaison multifactorielle : momentum dominant associé à la value, qui lui est négativement corrélée (Asness, Moskowitz et Pedersen, 2013), plus qualité et faible volatilité pour diversifier les primes.",
     note: "Les stratégies alternatives sont des fonds de suivi de tendance ; la poche actions est construite par facteurs.",
     gardeFou: "Ne pas dépasser 15 % sur une seule stratégie quantitative.",
     esprit: "Les Turtle Traders, les fonds de suivi de tendance"
@@ -834,7 +907,8 @@ window.PROFILS = {
     angleMort: "La répétition : un gain isolé ne valide pas une méthode.",
     modele: { nom: "La stratégie « barbell » de Nassim Taleb", desc: "Une très large part en actifs très sûrs, une petite part en paris très risqués, et rien entre les deux." },
     alloc: A({ MON: 30, GOVC: 25, HY: 5, ACTD: 10, SMALL: 10, OR: 5, MATP: 5, ALT: 5, CRYPTO: 5 }),
-    facteurs: { value: 1, qualite: -1, croissance: 0, momentum: -1, faibleVol: -2, dividende: 0, taille: 2 },
+    facteurs: { vc: 1, qualite: -1, momentum: -1, faibleVol: -2, taille: 2, dividende: 0 },
+    facteursPourquoi: "Petites valeurs volatiles en retournement : exactement les titres « loterie » que Kumar (2009) et Bali, Cakici et Whitelaw (2011) associent aux investisseurs attirés par le jeu, et qui ont en moyenne sous-performé.",
     note: "Les deux extrémités de l'haltère : 55 % très sûrs, environ 30 % en paris risqués, peu de placements intermédiaires.",
     gardeFou: "Plafonner la partie spéculative à 20 % et ne jamais y réinvestir plus de la moitié des gains.",
     esprit: "Nassim Taleb, les spéculateurs contrariens"
@@ -850,7 +924,8 @@ window.PROFILS = {
     angleMort: "Le risque de perte permanente lors des retournements.",
     modele: { nom: "Le momentum (Jegadeesh et Titman, 1993)", desc: "Les titres qui ont le plus monté sur trois à douze mois continuent en moyenne de surperformer, avant des retournements brutaux." },
     alloc: A({ MON: 10, ACTD: 45, ACTE: 10, SMALL: 15, MATP: 5, CRYPTO: 15 }),
-    facteurs: { value: -2, qualite: -1, croissance: 2, momentum: 2, faibleVol: -2, dividende: -2, taille: 1 },
+    facteurs: { vc: -2, qualite: -1, momentum: 2, faibleVol: -2, taille: 1, dividende: -2 },
+    facteursPourquoi: "Momentum et croissance maximaux, volatilité élevée : la prime momentum est réelle (Jegadeesh et Titman, 1993), mais elle s'accompagne de krachs brutaux lors des retournements (Daniel et Moskowitz, 2016).",
     note: "La poche actions suit les titres en plus forte dynamique ; elle tourne vite.",
     gardeFou: "Porter les obligations et le monétaire à 30 % et limiter les crypto-actifs à 5 %.",
     esprit: "Jesse Livermore, Nicolas Darvas"
@@ -1028,7 +1103,7 @@ window.TEXTES.OLAT = {
   meilleur: "Votre moment, c'est la décennie 2010. Les entreprises de qualité, rentables et en croissance, ont surperformé presque chaque année. Ceux qui ont acheté les grands leaders mondiaux en 2010 et les ont gardés ont vu leur capital multiplié plusieurs fois, sans avoir pris une seule décision difficile.",
   pire: "Votre épreuve, c'est 2022. La hausse brutale des taux a comprimé les valorisations des entreprises de croissance : des sociétés dont les bénéfices progressaient encore ont perdu 30 % à 50 % en bourse. Rien n'avait changé dans leur qualité ; seul le prix que le marché acceptait de payer pour leurs bénéfices futurs avait baissé. Vous avez découvert que la qualité ne protège pas d'avoir payé trop cher.",
   regard: "On vous trouve confiant, cohérent, peu nerveux. Vos proches envient votre sérénité pendant les crises. En comité, vous défendez le long terme contre les tentations tactiques, et vous rappelez que les meilleures entreprises se paient rarement bon marché.",
-  actifsPourquoi: "L'allocation type de votre profil part de la règle que Warren Buffett a fixée pour sa propre famille dans sa lettre aux actionnaires de 2013 : 90 % dans un fonds indiciel d'actions à bas coût, 10 % en obligations d'État courtes. Vous y ajoutez votre touche : une poche actions inclinée vers la qualité, des marchés émergents, et 10 % de capital-investissement pour l'horizon long. C'est l'allocation qui offre le rendement attendu le plus élevé des seize profils, avec des pertes de crise à la hauteur.",
+  actifsPourquoi: "L'allocation type de votre profil part de la règle que Warren Buffett a fixée pour sa propre famille dans sa lettre aux actionnaires de 2013 : 90 % dans un fonds indiciel d'actions à bas coût, 10 % en obligations d'État courtes. Vous y ajoutez votre touche : une poche actions inclinée vers la qualité, des marchés émergents, et 10 % de capital-investissement pour l'horizon long. C'est l'une des deux allocations au rendement attendu le plus élevé, avec le Visionnaire, et les pertes de crise sont à la hauteur.",
   pertes: "Votre piège est de payer la qualité trop cher. Dans les années 1970, les « Nifty Fifty », cinquante grandes valeurs américaines jugées incontournables, ont perdu plus de la moitié de leur valeur en deux ans, alors que la plupart sont restées d'excellentes entreprises. Le second piège est la concentration : à force de détenir les mêmes leaders que tout le monde, votre portefeuille dépend de quelques titres et d'un seul facteur.",
   gardeFouTexte: "Plafonnez votre premier secteur à 30 % du portefeuille et votre premier titre à 8 %. Fixez pour chaque entreprise un prix au-delà duquel vous ne renforcez plus. Vous garderez vos meilleures convictions, sans laisser la valorisation décider de votre risque.",
   ressemblent: "Warren Buffett dans sa période de maturité, convaincu par Charlie Munger qu'il vaut mieux acheter une entreprise formidable à un prix correct qu'une entreprise correcte à un prix formidable. Philip Fisher, pionnier de l'investissement de croissance. Et Terry Smith, dont la devise tient en trois verbes : acheter de bonnes entreprises, ne pas les payer trop cher, ne rien faire.",
@@ -1044,7 +1119,7 @@ window.TEXTES.OLID = {
   meilleur: "Votre moment, ce sont les grandes plateformes numériques achetées au début des années 2010, quand le marché doutait encore de leur modèle. Ou les premiers investisseurs dans des entreprises devenues incontournables, entrés quand elles ne valaient qu'une fraction de leur valeur actuelle. Un seul pari de ce type peut faire une carrière.",
   pire: "Votre épreuve, c'est 2022, et avant elle 2000. Quand les taux montent ou que le crédit se resserre, les entreprises sans bénéfices sont les premières frappées. En 2022, de nombreuses valeurs technologiques non rentables ont perdu 70 % à 80 % de leur valeur, et le financement des jeunes entreprises s'est tari. Votre vision était peut-être juste ; votre portefeuille, lui, a été divisé par trois.",
   regard: "On vous trouve inspirant, enthousiaste, parfois déconnecté des réalités financières. Vous êtes le premier à parler d'une technologie dans un dîner, et souvent le premier à y avoir investi. En comité, vous apportez les idées que les autres découvriront dans cinq ans, et vous avez du mal à accepter qu'on vous demande un compte de résultat.",
-  actifsPourquoi: "L'allocation type de votre profil s'inspire du modèle des fonds de dotation, développé par David Swensen à l'université Yale : une large part d'actifs non cotés, rendue possible par un horizon très long et l'absence de besoin de liquidité. D'où 30 % de non coté (capital-risque et capital-développement), 45 % d'actions inclinées vers la croissance et l'innovation, et une petite poche de crypto-actifs. Les obligations ne servent ici qu'à la liquidité.",
+  actifsPourquoi: "L'allocation type de votre profil s'inspire du modèle des fonds de dotation, développé par David Swensen à l'université Yale : une large part d'actifs non cotés, rendue possible par un horizon très long et l'absence de besoin de liquidité. D'où 30 % de capital-investissement non coté (capital-risque et capital-développement), 45 % d'actions inclinées vers la croissance et l'innovation, et une petite poche de crypto-actifs. Les obligations ne servent ici qu'à la liquidité.",
   pertes: "Votre piège est la surconfiance : une vision forte vous fait sous-estimer la probabilité d'échec et surestimer votre capacité à choisir les gagnants. Le second piège est la valorisation : une entreprise peut changer le monde et rester un mauvais investissement si on l'a payée trop cher. Enfin, le non coté a un coût caché : votre argent peut être immobilisé dix ans, et les valorisations affichées réagissent avec retard aux crises.",
   gardeFouTexte: "Limitez le non coté à 20 % tant que votre patrimoine n'est pas durablement à l'abri d'un besoin de liquidité, et dimensionnez chaque pari pour pouvoir le perdre entièrement sans conséquence. Gardez un socle diversifié qui ne dépend d'aucune vision, la vôtre comprise.",
   ressemblent: "David Swensen, qui a transformé la gestion du fonds de dotation de Yale. Georges Doriot, Français, professeur à Harvard et père du capital-risque moderne. Et tous les investisseurs qui ont financé les entreprises qui composent aujourd'hui le haut des indices mondiaux.",
@@ -1559,8 +1634,17 @@ window.TEXTES.OCIT = {
           <div class="cb"><span class="cb-l muted">60/40</span><span class="cb-track"><i style="width:${Math.min(Math.abs(b) / maxv * 100, 100)}%;background:var(--ref)"></i></span><span class="mono muted">${fmt(b)} %</span></div>
         </div></div>`;
     }).join("");
-    const dots = v => [-2, -1, 0, 1, 2].map(k => `<i class="${k === v ? "on" : ""} ${k === 0 ? "zero" : ""}"></i>`).join("");
-    const factors = FA.map(f => { const v = p.facteurs[f.id]; return `<div class="factor"><span>${f.nom}</span><span class="fdots" aria-label="${f.nom} : ${v > 0 ? "surpondéré" : v < 0 ? "sous-pondéré" : "neutre"}">${dots(v)}</span></div>`; }).join("");
+    const WORD = { "-2": "fortement sous-pondéré", "-1": "sous-pondéré", "0": "neutre", "1": "surpondéré", "2": "fortement surpondéré" };
+    const vcWord = v => v === 0 ? "équilibré" : (Math.abs(v) === 2 ? "fortement " : "") + (v > 0 ? "value" : "croissance");
+    const neutral = FA.every(f => p.facteurs[f.id] === 0);
+    const factors = neutral
+      ? `<p class="fneutral">Aucune inclinaison de style : la poche actions suit la pondération de marché d'un indice mondial.</p>`
+      : FA.map(f => { const v = p.facteurs[f.id], w = f.id === "vc" ? vcWord(v) : WORD[String(v)];
+          const fill = v === 0 ? "" : `<i class="ffill" style="${v > 0 ? "left:50%" : `left:${50 - Math.abs(v) * 25}%`};width:${Math.abs(v) * 25}%"></i>`;
+          return `<div class="frow" title="${f.def}"><div class="fhead"><span>${f.nom}</span><span class="fword ${v === 0 ? "muted" : ""}">${w}</span></div>
+            <div class="ftrack" role="img" aria-label="${f.nom} : ${w}"><span class="fmid"></span>${fill}</div>
+            <div class="fends"><span>${f.gauche}</span><span>${f.droite}</span></div></div>`; }).join("");
+    const fdefs = FA.filter(f => neutral || p.facteurs[f.id] !== 0).map(f => `<li><strong>${f.nom}.</strong> ${f.def} <span class="muted">${f.recherche}.</span></li>`).join("");
     return `<section class="chapter" style="--fam:${famColor(code)}">
       <span class="eyebrow">Chapitre 4</span><h2>L'allocation type de votre profil</h2>
       <div class="reg" role="note"><strong>Illustration pédagogique, pas un conseil en investissement.</strong> Cette allocation décrit l'archétype « ${p.nom} ». Elle ne tient compte ni de votre patrimoine, ni de vos revenus, ni de vos objectifs, ni de votre horizon, et ne vise aucun produit financier. <a href="#avertissement">Lire l'avertissement</a></div>
@@ -1585,7 +1669,9 @@ window.TEXTES.OCIT = {
         <div class="stack">
           <div class="panel"><h3>À l'épreuve des crises</h3>${crisisRows}
             <p class="muted small">Performance estimée de l'allocation sur chaque épisode, en euros, comparée à un portefeuille 60/40. Ordres de grandeur.</p></div>
-          <div class="panel"><h3>Votre poche actions</h3><div class="flegend"><span>Sous-pondéré</span><span>Surpondéré</span></div>${factors}</div>
+          <div class="panel" style="--fam:${famColor(code)}"><h3>Inclinaisons de la poche actions</h3>${factors}
+            <p class="small">${p.facteursPourquoi}</p>
+            <details class="fdetails"><summary>Ce que mesurent ces facteurs</summary><ul class="list">${fdefs}</ul><p class="muted small">Détail des études et du comportement en crise : <a href="#methode">page Méthode</a>.</p></details></div>
         </div>
       </div>
 
@@ -1751,6 +1837,12 @@ window.TEXTES.OCIT = {
         <div class="table-wrap" style="margin-top:16px"><table class="mtable"><thead><tr><th>Classe d'actifs</th><th>Rendement attendu</th><th>Source</th><th>2008</th><th>Krach 2020</th><th>2022</th><th>Liquidité</th></tr></thead><tbody>
           ${CL.map(c => `<tr><td>${c.nom}</td><td class="mono">${c.r === null ? "–" : c.r.toFixed(1).replace(".", ",") + " %"}</td><td>${c.rs}</td>${c.c.map(x => `<td class="mono">${fmt(x)} %</td>`).join("")}<td>${window.ILLIQUIDES.includes(c.id) ? "plus d'un mois" : "moins d'un mois"}</td></tr>`).join("")}
         </tbody></table></div></section>
+      <section style="margin-top:48px"><h2>Les facteurs de style</h2>
+        <p class="prose muted" style="margin-top:12px">La poche actions de chaque profil est inclinée vers des facteurs de style documentés par la recherche académique. Value et croissance forment un seul axe, puisqu'il s'agit des deux côtés d'une même mesure. Chaque inclinaison va de −2 à +2 par rapport à un indice mondial pondéré par les capitalisations.</p>
+        <div class="table-wrap" style="margin-top:16px"><table class="mtable"><thead><tr><th>Facteur</th><th>Ce qu'il mesure</th><th>Fondement académique</th><th>Comportement en crise</th><th>Hypothèse J.P. Morgan 2026</th></tr></thead><tbody>
+          ${FA.map(f => `<tr><td><strong>${f.nom}</strong></td><td>${f.def}</td><td>${f.recherche}</td><td>${f.crises}</td><td class="mono">${f.jpm}</td></tr>`).join("")}
+        </tbody></table></div>
+        <p class="muted small" style="margin-top:8px">${window.SOURCES_FACTEURS}</p></section>
       <section style="margin-top:48px"><h2>Sources</h2>
         <ul class="list prose" style="margin-top:12px">${window.SOURCES.map(x => `<li><a href="${x.u}" target="_blank" rel="noopener">${x.t}</a></li>`).join("")}</ul>
         <h3 style="margin-top:24px">Recherche citée</h3>
