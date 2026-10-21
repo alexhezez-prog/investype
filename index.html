@@ -350,6 +350,35 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
   .nav a { padding: 6px 8px; font-size: 0.82rem; white-space: nowrap; }
 }
 
+/* Version 2.0 : étape 2, profil de risque indicatif */
+.btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+.e2-title { font-family: var(--font-display); font-size: clamp(1.6rem, 4vw, 2.2rem); line-height: 1.15; }
+.e2 .qcard > p { line-height: 1.6; }
+.e2-pillars { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.e2-pillars > div { display: grid; gap: 2px; align-content: start; padding: 12px; border-radius: 12px; background: var(--sunken); font-size: 0.92rem; }
+.e2-intro { font-size: 0.92rem; color: var(--muted); border-left: 3px solid var(--opp); padding-left: 12px; }
+.e2-aide { font-size: 0.88rem; line-height: 1.55; padding: 12px 14px; border-radius: 12px; background: var(--sunken); color: var(--muted); }
+.opt.multi .k { border: 1px solid var(--line); }
+.e2-cta { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 20px; border-left: 4px solid var(--fam, var(--ink)); }
+.e2-cta h2 { margin: 6px 0 8px; }
+.e2-res .sec-head { max-width: none; }
+.e2-res .reg { margin-top: 16px; }
+.ladder { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 20px; }
+.lvl { display: grid; gap: 6px; align-content: start; padding: 16px 18px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); }
+.lvl.bind { border-color: var(--warn); }
+.lvl .pill { justify-self: start; font-family: var(--font-data); font-size: 0.7rem; padding: 3px 8px; border-radius: 999px; font-weight: 600; }
+.lvl.final { background: color-mix(in srgb, var(--fam) 10%, var(--surface)); border: 2px solid var(--fam); }
+.lvl.final .eyebrow { color: var(--fam); }
+.list.cplx li, .list.quiz li { font-size: 0.88rem; }
+.list.cplx li.ok::before, .list.quiz li.ok::before { background: var(--good); }
+.list.cplx li.ko::before, .list.quiz li.ko::before { background: transparent; border: 2px solid var(--warn); border-radius: 50%; }
+.check { display: flex; gap: 8px; align-items: flex-start; font-size: 0.86rem; color: var(--muted); cursor: pointer; }
+.check input { margin-top: 3px; accent-color: var(--ink); }
+.e2-res .alloc-table td.n { width: 72px; }
+@media (max-width: 980px) { .ladder { grid-template-columns: repeat(2, minmax(0, 1fr)); } .e2-pillars { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .ladder, .e2-pillars { grid-template-columns: minmax(0, 1fr); } .e2-cta { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 560px) { .signal { grid-template-columns: minmax(0, 1fr); gap: 6px; } .signal .pill { justify-self: start; } }
+
 </style>
 </head>
 <body>
@@ -371,7 +400,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 
 <footer>
   <div class="wrap">
-    <span>© 2026 QuidHabes · Alexandre Hezez · Version 1.4</span>
+    <span>© 2026 QuidHabes · Alexandre Hezez · Version 2.0</span>
     <span>Outil pédagogique, pas un conseil en investissement. <a href="#avertissement">Avertissement et mentions légales</a></span>
   </div>
 </footer>
@@ -1235,6 +1264,320 @@ window.TEXTES.OCIT = {
 
 </script>
 <script>
+/* Étape 2 — profil de risque indicatif, structuré selon les lignes directrices ESMA sur l'adéquation (MiFID II).
+   Données : questions, plafonds, filtres de connaissances, substituts, poche de sécurité.
+   Chaque option de « situation » et d'« objectifs » porte un plafond (cap) de 1 à 5 sur l'échelle de risque.
+   © QuidHabes — Alexandre Hezez, 2026 */
+
+window.RISQUE = (function () {
+  /* Échelle commune avec l'indicateur « pire perte de crise » des allocations */
+  const NIVEAUX = [
+    { n: 1, nom: "Prudent",   seuil: -11,   court: "jusqu'à −11 %" },
+    { n: 2, nom: "Modéré",    seuil: -18,   court: "jusqu'à −18 %" },
+    { n: 3, nom: "Équilibré", seuil: -25,   court: "jusqu'à −25 %" },
+    { n: 4, nom: "Dynamique", seuil: -32.5, court: "jusqu'à −32,5 %" },
+    { n: 5, nom: "Offensif",  seuil: null,  court: "sans plafond" }
+  ];
+
+  /* Tolérance au risque : score de l'axe Risque d'Investype (scénarios, déclaré et révélé).
+     Bornes supérieures des niveaux 1 à 4 ; tout profil Offensive (score > 50) a une tolérance d'au moins 4. */
+  const BORNES_TOLERANCE = [20, 35, 50, 70];
+
+  const BLOCS = [
+    { id: "connaissances", nom: "Connaissances", pilier: "Connaissances et expérience",
+      intro: "Six questions factuelles, comme un petit quiz. Répondez « Je ne sais pas » plutôt que de deviner : une bonne réponse au hasard pourrait vous ouvrir des placements que vous ne maîtrisez pas." },
+    { id: "experience", nom: "Expérience", pilier: "Connaissances et expérience",
+      intro: "Ce que vous avez réellement fait, pas ce que vous pensez savoir." },
+    { id: "situation", nom: "Situation financière", pilier: "Situation financière et capacité de perte",
+      intro: "Votre capacité à supporter une perte ne dépend pas de votre caractère, mais de votre situation. Pensez à la somme que vous envisagez d'investir." },
+    { id: "objectifs", nom: "Objectifs", pilier: "Objectifs d'investissement",
+      intro: "À quoi doit servir cette somme, et quand." },
+    { id: "durabilite", nom: "Durabilité", pilier: "Préférences de durabilité",
+      intro: "Il n'y a pas de bonne ou de mauvaise réponse. Vous pouvez aussi n'exprimer aucune préférence." }
+  ];
+
+  const QUESTIONS = [
+    /* ---------- Connaissances : 1 auto-évaluation + 6 questions factuelles ---------- */
+    { id: "K0", bloc: "connaissances", texte: "Avant le quiz : comment évaluez-vous vos connaissances financières ?",
+      note: "Cette réponse ne compte pas dans le score. Elle sert à comparer ce que vous pensez savoir et ce que le quiz mesure.",
+      options: [{ t: "Débutant", d: 1 }, { t: "Intermédiaire", d: 2 }, { t: "Confirmé", d: 3 }, { t: "Expert", d: 4 }] },
+    { id: "K1", bloc: "connaissances", theme: "Taux et obligations",
+      texte: "Les taux d'intérêt montent fortement. En général, que devient le prix d'une obligation à taux fixe déjà émise ?",
+      options: [{ t: "Il monte" }, { t: "Il baisse", ok: true }, { t: "Il ne change pas, le taux est fixe" }, { t: "Je ne sais pas" }],
+      explication: "Quand les taux montent, les nouvelles obligations rapportent davantage : le prix des anciennes baisse pour s'aligner. C'est ce qui s'est produit en 2022." },
+    { id: "K2", bloc: "connaissances", theme: "Crédit et haut rendement",
+      texte: "Une obligation « à haut rendement » (high yield) offre un taux élevé principalement parce que :",
+      options: [{ t: "Elle est garantie par un État" }, { t: "Elle est plus facile à revendre que les autres" }, { t: "Son émetteur présente un risque de défaut plus élevé", ok: true }, { t: "Je ne sais pas" }],
+      explication: "Le surcroît de rendement rémunère un risque de défaut plus élevé, qui se matérialise surtout en récession." },
+    { id: "K3", bloc: "connaissances", theme: "Diversification",
+      texte: "Lequel de ces placements est le plus diversifié ?",
+      options: [{ t: "Les actions de cinq grandes entreprises françaises" }, { t: "Un fonds indiciel d'actions mondiales, investi dans plus d'un millier d'entreprises", ok: true }, { t: "Un livret et les actions de votre employeur" }, { t: "Je ne sais pas" }],
+      explication: "Un fonds indiciel mondial répartit le risque sur des centaines d'entreprises, de secteurs et de pays. Les actions de son employeur cumulent au contraire le risque sur l'emploi et sur l'épargne." },
+    { id: "K4", bloc: "connaissances", theme: "Non coté et liquidité",
+      texte: "Vous avez investi dans un fonds de capital-investissement (private equity). Pouvez-vous en général récupérer votre argent quand vous le souhaitez ?",
+      options: [{ t: "Oui, sous quelques jours, comme un fonds d'actions cotées" }, { t: "Oui, moyennant une petite pénalité" }, { t: "Non, l'argent est souvent bloqué plusieurs années", ok: true }, { t: "Je ne sais pas" }],
+      explication: "La plupart des fonds non cotés bloquent l'épargne pendant plusieurs années, souvent cinq à dix ans pour un FCPR ou un FCPI." },
+    { id: "K5", bloc: "connaissances", theme: "Crypto-actifs",
+      texte: "Que peut-on dire du cours du bitcoin ?",
+      options: [{ t: "Il est garanti par une banque centrale" }, { t: "Il a déjà perdu plus de 70 % depuis un sommet, en 2018 comme en 2022", ok: true }, { t: "Des mécanismes de protection l'empêchent de baisser de plus de 20 %" }, { t: "Je ne sais pas" }],
+      explication: "Aucune garantie ni aucun mécanisme ne protège le cours. Le bitcoin a perdu plus de 80 % entre décembre 2017 et décembre 2018, et plus de 75 % entre novembre 2021 et novembre 2022." },
+    { id: "K6", bloc: "connaissances", theme: "Stratégies alternatives",
+      texte: "Un fonds « neutre au marché » (market neutral) cherche à :",
+      options: [{ t: "Reproduire exactement un indice boursier" }, { t: "Garantir le capital investi" }, { t: "Gagner de l'argent quelle que soit la direction du marché, en combinant achats et ventes à découvert", ok: true }, { t: "Je ne sais pas" }],
+      explication: "Ces fonds achètent certains titres et en vendent d'autres à découvert pour neutraliser l'effet du marché. Le capital n'est pas garanti et le résultat dépend du talent du gérant." },
+
+    /* ---------- Expérience ---------- */
+    { id: "E1", bloc: "experience", multi: true, texte: "Quels placements détenez-vous ou avez-vous détenus au cours des trois dernières années ?",
+      note: "Plusieurs réponses possibles.",
+      options: [
+        { t: "Livrets, fonds en euros", f: "base" },
+        { t: "Actions ou fonds d'actions (PEA, compte-titres, unités de compte)", f: "act" },
+        { t: "Obligations ou fonds obligataires", f: "obl" },
+        { t: "Immobilier non coté (SCPI, investissement locatif)", f: "immo" },
+        { t: "Capital-investissement ou dette privée (FCPR, FCPI, FIP, ELTIF)", f: "pe" },
+        { t: "Fonds alternatifs, produits structurés ou dérivés", f: "alt" },
+        { t: "Crypto-actifs", f: "crypto" },
+        { t: "Aucun de ces placements", f: "none", seul: true }
+      ] },
+    { id: "E2", bloc: "experience", texte: "Combien d'opérations d'achat ou de vente en bourse avez-vous passées au cours des douze derniers mois ?",
+      options: [{ t: "Aucune", v: 0 }, { t: "1 à 5", v: 1 }, { t: "6 à 20", v: 2 }, { t: "Plus de 20", v: 3 }] },
+    { id: "E3", bloc: "experience", texte: "Votre formation ou votre métier vous ont-ils apporté des connaissances financières ?",
+      options: [{ t: "Non", v: 0 }, { t: "Oui, par une formation ou un intérêt personnel approfondi", v: 1 }, { t: "Oui, j'exerce ou j'ai exercé un métier de la finance", v: 2 }] },
+
+    /* ---------- Situation financière et capacité de perte ---------- */
+    { id: "S1", bloc: "situation", texte: "Hors de la somme à investir, combien de mois de dépenses courantes votre épargne disponible (livrets, compte courant) couvre-t-elle ?",
+      options: [{ t: "Moins d'un mois", cap: 2 }, { t: "Un à trois mois", cap: 3 }, { t: "Trois à six mois", cap: 4 }, { t: "Plus de six mois", cap: 5 }] },
+    { id: "S2", bloc: "situation", texte: "Quelle part de votre patrimoine total, net de vos dettes et résidence principale comprise, cette somme représente-t-elle ?",
+      options: [{ t: "Plus des trois quarts", cap: 2 }, { t: "La moitié aux trois quarts", cap: 3 }, { t: "Un quart à la moitié", cap: 4 }, { t: "Moins d'un quart", cap: 5 }] },
+    { id: "S3", bloc: "situation", texte: "Sur les trois prochaines années, vos revenus seront plutôt :",
+      options: [{ t: "Juste suffisants pour couvrir mes charges", cap: 2 }, { t: "Incertains (fin de contrat, recherche d'emploi, activité irrégulière)", cap: 3 }, { t: "Variables mais confortables (indépendant, part variable importante)", cap: 4 }, { t: "Stables et réguliers (salaire, retraite, rentes)", cap: 5 }] },
+    { id: "S4", bloc: "situation", texte: "Vos remboursements d'emprunts représentent quelle part de vos revenus ?",
+      options: [{ t: "Aucun emprunt en cours", cap: 5 }, { t: "Moins de 20 %", cap: 5 }, { t: "20 à 35 %", cap: 4 }, { t: "Plus de 35 %", cap: 3 }] },
+    { id: "S5", bloc: "situation", texte: "Si cette somme perdait 30 % de sa valeur, quelles conséquences concrètes cela aurait-il ?",
+      options: [{ t: "Je devrais réduire mon niveau de vie ou renoncer à un projet important", cap: 2 }, { t: "Je devrais reporter un projet", cap: 3 }, { t: "Aucune sur mon niveau de vie, mais la perte serait sensible", cap: 4 }, { t: "Aucune conséquence notable", cap: 5 }] },
+    { id: "S6", bloc: "situation", texte: "Est-il probable que vous ayez besoin de retirer une part importante de cette somme avant l'échéance prévue (achat immobilier, études, imprévu) ?",
+      options: [{ t: "Oui, c'est probable", cap: 3, liq: 2 }, { t: "C'est possible", cap: 4, liq: 1 }, { t: "Non, c'est peu probable", cap: 5, liq: 0 }] },
+    { id: "S7", bloc: "situation", texte: "Votre patrimoine est-il déjà très exposé à un même risque (actions de votre employeur, votre entreprise, un bien immobilier financé à crédit) ?",
+      options: [{ t: "Oui, pour plus de la moitié", cap: 4, conc: 2 }, { t: "Oui, en partie", cap: 5, conc: 1 }, { t: "Non", cap: 5, conc: 0 }] },
+    { id: "S8", bloc: "situation", texte: "Pour 10 000 € investis, quelle perte pourriez-vous subir sans que cela affecte votre niveau de vie ni vos projets ?",
+      options: [{ t: "Moins de 1 000 €", cap: 1 }, { t: "1 000 à 1 800 €", cap: 2 }, { t: "1 800 à 2 500 €", cap: 3 }, { t: "2 500 à 3 300 €", cap: 4 }, { t: "Plus de 3 300 €", cap: 5 }] },
+
+    /* ---------- Objectifs ---------- */
+    { id: "O1", bloc: "objectifs", texte: "Dans combien de temps pensez-vous avoir besoin de cette somme ?",
+      options: [{ t: "Moins de deux ans", cap: 1 }, { t: "Deux à quatre ans", cap: 2 }, { t: "Quatre à six ans", cap: 3 }, { t: "Six à huit ans", cap: 4 }, { t: "Plus de huit ans, ou pas d'échéance", cap: 5 }] },
+    { id: "O2", bloc: "objectifs", texte: "Quel est le but principal de ce placement ?",
+      options: [{ t: "Préserver le capital, quitte à renoncer à du rendement", cap: 1 }, { t: "Obtenir des revenus réguliers", cap: 4 }, { t: "Faire croître le capital sur la durée", cap: 5 }, { t: "Préparer une transmission", cap: 5 }] },
+    { id: "O3", bloc: "objectifs", texte: "Prévoyez-vous de retirer régulièrement de l'argent sur cette somme ?",
+      options: [{ t: "Non", cap: 5 }, { t: "Oui, moins de 4 % par an", cap: 4 }, { t: "Oui, 4 % par an ou plus", cap: 3 }] },
+
+    /* ---------- Durabilité (arbre : D2 à D4 seulement si D1 = oui) ---------- */
+    { id: "D1", bloc: "durabilite", texte: "Souhaitez-vous que vos placements tiennent compte de critères de durabilité ?",
+      aide: "Depuis le 2 août 2022, tout conseiller doit vous poser cette question. Vous pouvez répondre non : cela ne change rien au reste de votre profil.",
+      options: [{ t: "Oui", v: 1 }, { t: "Non, pas de préférence particulière", v: 0 }] },
+    { id: "D2", bloc: "durabilite", si: a => a.D1 === 0, texte: "Quelle part minimale de vos placements doit être investie dans des activités alignées sur la taxonomie européenne ?",
+      aide: "La taxonomie européenne définit les activités économiques considérées comme écologiquement durables : elles contribuent substantiellement à un objectif environnemental (climat, eau, économie circulaire, pollution, biodiversité), sans nuire significativement aux autres, et dans le respect de garanties sociales minimales.",
+      options: [{ t: "Pas de minimum", v: 0 }, { t: "Au moins 5 %", v: 5 }, { t: "Au moins 10 %", v: 10 }, { t: "Au moins 20 %", v: 20 }] },
+    { id: "D3", bloc: "durabilite", si: a => a.D1 === 0, texte: "Quelle part minimale de vos placements doit constituer des « investissements durables » au sens du règlement SFDR ?",
+      aide: "Le règlement européen SFDR qualifie d'investissement durable un placement dans une activité qui contribue à un objectif environnemental ou social, sans causer de préjudice important à d'autres objectifs, dans une entreprise appliquant de bonnes pratiques de gouvernance. Ce règlement est en cours de révision.",
+      options: [{ t: "Pas de minimum", v: 0 }, { t: "Au moins 10 %", v: 10 }, { t: "Au moins 25 %", v: 25 }, { t: "Au moins 50 %", v: 50 }] },
+    { id: "D4", bloc: "durabilite", si: a => a.D1 === 0, multi: true, texte: "Quelles principales incidences négatives souhaitez-vous que vos placements prennent en compte ?",
+      aide: "Les principales incidences négatives sont les effets les plus importants des investissements sur l'environnement et la société : émissions de gaz à effet de serre, atteintes à la biodiversité, violations des droits humains, corruption… Plusieurs réponses possibles.",
+      options: [{ t: "Climat et environnement", f: "env" }, { t: "Questions sociales et droits humains", f: "soc" }, { t: "Gouvernance et lutte contre la corruption", f: "gouv" }, { t: "Pas de préférence", f: "none", seul: true }] }
+  ];
+  /* Note : l'option « Oui » de D1 est à l'index 0 ; la condition si() teste donc l'index de réponse 0. */
+
+  /* Classes complexes : retirées si les connaissances ou l'expérience ne les couvrent pas.
+     ordre = ordre des bits du code de partage */
+  const COMPLEXES = [
+    { id: "HY",     regle: "Questions sur les taux et sur le haut rendement réussies",
+      ok: e => e.ok.K1 && e.ok.K2 },
+    { id: "DETTEP", regle: "Questions sur le haut rendement et sur le non coté réussies",
+      ok: e => e.ok.K2 && e.ok.K4 },
+    { id: "PE",     regle: "Question sur le non coté réussie, et expérience du non coté, métier de la finance ou au moins 5 bonnes réponses",
+      ok: e => e.ok.K4 && (e.exp.pe || e.pro || e.K >= 5) },
+    { id: "ALT",    regle: "Question sur les stratégies alternatives réussie",
+      ok: e => e.ok.K6 },
+    { id: "CRYPTO", regle: "Question sur les crypto-actifs réussie, et expérience des crypto-actifs, métier de la finance ou au moins 5 bonnes réponses",
+      ok: e => e.ok.K5 && (e.exp.crypto || e.pro || e.K >= 5) }
+  ];
+
+  /* Substituts liquides et simples, en proportion du poids retiré */
+  const SUBSTITUTS = {
+    HY: { IG: 1 }, DETTEP: { IG: 1 }, PE: { ACTD: 0.7, SMALL: 0.3 },
+    ALT: { GOVC: 0.5, OR: 0.5 }, CRYPTO: { MON: 1 }, IMMONC: { GOVC: 0.5, INFL: 0.5 }
+  };
+
+  /* Poche de sécurité utilisée pour ramener une allocation dans son budget de risque */
+  const POCHE = { MON: 40, GOVC: 30, IG: 30 };
+
+  const SOURCES = [
+    { t: "ESMA — Orientations sur certains aspects des exigences d'adéquation de MiFID II (ESMA35-43-3172, 2022)", u: "https://www.esma.europa.eu/document/guidelines-certain-aspects-mifid-ii-suitability-requirements-1" },
+    { t: "AMF — Évaluation de l'adéquation : l'AMF applique les orientations de l'ESMA mises à jour (position DOC-2019-03, 2023)", u: "https://www.amf-france.org/fr/actualites-publications/actualites/evaluation-de-ladequation-de-la-directive-mif-2-lamf-applique-les-orientations-de-lesma-mises-jour" },
+    { t: "AMF — Synthèse des contrôles SPOT sur la prise en compte des préférences de durabilité (février 2026)", u: "https://www.amf-france.org/sites/institutionnel/files/private/2026-02/synthese-spot-preferences-durabilite-fr.pdf" },
+    { t: "Commission européenne — Demande d'avis technique à l'ESMA sur la stratégie pour l'investissement de détail (juillet 2026)", u: "https://www.esma.europa.eu/sites/default/files/2026-08/Call_for_advice_on_RIS_to_ESMA.pdf" }
+  ];
+
+  return { NIVEAUX, BORNES_TOLERANCE, BLOCS, QUESTIONS, COMPLEXES, SUBSTITUTS, POCHE, SOURCES };
+})();
+
+</script>
+<script>
+/* Étape 2 — moteur du profil de risque indicatif. Fonctions pures, utilisables dans le navigateur et sous Node.
+   Règle : niveau retenu = le plus prudent de (tolérance, capacité de perte, horizon et objectifs).
+   Les connaissances filtrent les classes complexes ; le style du profil est conservé à l'intérieur du budget de risque.
+   © QuidHabes — Alexandre Hezez, 2026 */
+(function (root) {
+  const R = () => root.RISQUE;
+  const qById = id => R().QUESTIONS.find(q => q.id === id);
+
+  /* Questions affichées compte tenu de l'arbre (durabilité) */
+  function visibles(answers) {
+    return R().QUESTIONS.filter(q => !q.si || q.si(answers));
+  }
+  function complet(answers) {
+    return visibles(answers).every(q => {
+      const a = answers[q.id];
+      return q.multi ? Array.isArray(a) && a.length > 0 : typeof a === "number";
+    });
+  }
+
+  function toleranceDepuisR(scoreR) {
+    return 1 + R().BORNES_TOLERANCE.filter(b => scoreR > b).length;
+  }
+
+  /* Évaluation des réponses (indices d'options ; tableaux d'indices pour les questions à choix multiples) */
+  function evaluer(answers) {
+    const opt = id => { const q = qById(id), a = answers[id]; return typeof a === "number" ? q.options[a] : null; };
+    const multi = id => { const q = qById(id), a = answers[id]; return Array.isArray(a) ? a.map(i => q.options[i]) : []; };
+
+    const ok = {};
+    ["K1", "K2", "K3", "K4", "K5", "K6"].forEach(id => { const o = opt(id); ok[id] = !!(o && o.ok); });
+    const K = Object.values(ok).filter(Boolean).length;
+    const D = (opt("K0") || { d: 1 }).d;
+
+    const exp = {};
+    multi("E1").forEach(o => { exp[o.f] = true; });
+    const trans = (opt("E2") || { v: 0 }).v;
+    const pro = ((opt("E3") || { v: 0 }).v) === 2;
+
+    const caps = (ids) => ids.map(id => ({ id, cap: (opt(id) || { cap: 5 }).cap }));
+    const capS = caps(["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8"]);
+    const capO = caps(["O1", "O2", "O3"]);
+    const C = Math.min(...capS.map(x => x.cap));
+    const H = Math.min(...capO.map(x => x.cap));
+    const bindS = capS.filter(x => x.cap === C && C < 5).map(x => x.id);
+    const bindO = capO.filter(x => x.cap === H && H < 5).map(x => x.id);
+
+    const L = (opt("S6") || { liq: 0 }).liq;
+    const X = (opt("S7") || { conc: 0 }).conc;
+    /* Contradiction entre deux mesures de la capacité de perte (conséquences d'une perte de 30 % / perte supportable en euros) */
+    const W = (opt("S5") && opt("S8") && Math.abs(opt("S5").cap - opt("S8").cap) >= 3) ? 1 : 0;
+
+    const e = { ok, K, exp, pro };
+    const masque = R().COMPLEXES.map(c => (c.ok(e) ? "1" : "0")).join("");
+
+    const d1 = opt("D1");
+    const S = d1 && d1.v === 1 ? 1 : 0;
+    const dur = S ? {
+      taxo: (opt("D2") || { v: 0 }).v, sfdr: (opt("D3") || { v: 0 }).v,
+      pai: multi("D4").filter(o => o.f !== "none").map(o => o.t)
+    } : null;
+
+    return { C, H, bindS, bindO, L, X, W, K, D, masque, S, ok, exp, trans, pro, dur };
+  }
+
+  /* Code de partage : uniquement des niveaux et des indicateurs, jamais de montants.
+     ~k1-C<cap>b<questions>-H<horizon>b<questions>-<masque>-L<liq>-K<quiz>D<déclaré>-X<conc>-W<contradiction>-S<durabilité> */
+  function encoder(ev) {
+    const b = l => l.map(id => id.slice(1)).join("") || "0";
+    return `~k1-C${ev.C}b${b(ev.bindS)}-H${ev.H}b${b(ev.bindO)}-${ev.masque}-L${ev.L}-K${ev.K}D${ev.D}-X${ev.X}-W${ev.W}-S${ev.S}`;
+  }
+  const RE = /~k1-C([1-5])b(\d{1,8})-H([1-5])b(\d{1,3})-([01]{5})-L([0-2])-K([0-6])D([1-4])-X([0-2])-W([01])-S([01])/;
+  function decoder(str) {
+    const m = String(str || "").match(RE);
+    if (!m) return null;
+    const ids = (s, p) => s === "0" ? [] : [...s].map(c => p + c);
+    return { C: +m[1], bindS: ids(m[2], "S"), H: +m[3], bindO: ids(m[4], "O"), masque: m[5], L: +m[6], K: +m[7], D: +m[8], X: +m[9], W: +m[10], S: +m[11], token: m[0] };
+  }
+
+  /* ---------- Allocation ajustée ---------- */
+  const crises = (alloc, CL) => [0, 1, 2].map(i => CL.reduce((t, c) => t + (alloc[c.id] || 0) * c.c[i], 0) / 100);
+  const pire = (alloc, CL) => Math.min(...crises(alloc, CL));
+
+  function filtrer(alloc, masque, L) {
+    const out = { ...alloc }, retirees = [];
+    const retirer = (id, part, cause) => {
+      const w = (out[id] || 0) * part;
+      if (w <= 0) return;
+      out[id] -= w;
+      retirees.push({ id, w, cause, vers: R().SUBSTITUTS[id] });
+      for (const [k, f] of Object.entries(R().SUBSTITUTS[id])) out[k] = (out[k] || 0) + w * f;
+    };
+    R().COMPLEXES.forEach((c, i) => { if (masque[i] === "0") retirer(c.id, 1, "connaissances"); });
+    /* Besoin de liquidité : illiquides exclus (probable) ou réduits de moitié (possible) */
+    if (L > 0) ["IMMONC", "PE", "DETTEP"].forEach(id => retirer(id, L === 2 ? 1 : 0.5, "liquidite"));
+    return { alloc: out, retirees };
+  }
+
+  /* Part λ de l'allocation conservée : la plus grande part qui respecte le seuil dans chacune des trois crises */
+  function lambda(alloc, seuil, CL) {
+    if (seuil === null) return 1;
+    const P = crises(alloc, CL), B = crises(R().POCHE, CL);
+    let l = 1;
+    for (let i = 0; i < 3; i++) {
+      if (P[i] >= seuil) continue;
+      l = Math.min(l, B[i] <= seuil ? 0 : (B[i] - seuil) / (B[i] - P[i]));
+    }
+    return Math.max(0, Math.min(1, l));
+  }
+
+  /* Arrondi à l'entier en conservant un total de 100 (plus forts restes) */
+  function arrondir(alloc) {
+    const ids = Object.keys(alloc).filter(k => alloc[k] > 1e-9);
+    const base = {}, rest = [];
+    ids.forEach(k => { base[k] = Math.floor(alloc[k]); rest.push([k, alloc[k] - base[k]]); });
+    let manque = 100 - Object.values(base).reduce((a, b) => a + b, 0);
+    rest.sort((a, b) => b[1] - a[1]);
+    for (let i = 0; manque > 0 && i < rest.length; i++, manque--) base[rest[i][0]]++;
+    return base;
+  }
+
+  function ajuster(allocNat, niveau, masque, L, CL) {
+    const N = R().NIVEAUX[niveau - 1];
+    const f = filtrer(allocNat, masque, L);
+    const l = lambda(f.alloc, N.seuil, CL);
+    const mix = {};
+    CL.forEach(c => { mix[c.id] = l * (f.alloc[c.id] || 0) + (1 - l) * (R().POCHE[c.id] || 0); });
+    const out = arrondir(mix);
+    /* Après arrondi, garantir le seuil : on transfère point par point la classe la plus pénalisante vers le monétaire */
+    let garde = 0;
+    while (N.seuil !== null && pire(out, CL) < N.seuil && garde++ < 100) {
+      const cr = crises(out, CL), i = cr.indexOf(Math.min(...cr));
+      const pire_cl = CL.filter(c => c.id !== "MON" && (out[c.id] || 0) > 0).sort((a, b) => a.c[i] - b.c[i])[0];
+      out[pire_cl.id]--; out.MON = (out.MON || 0) + 1;
+    }
+    CL.forEach(c => { if (!(c.id in out)) out[c.id] = 0; });
+    return { alloc: out, lambda: l, retirees: f.retirees, filtree: f.alloc };
+  }
+
+  /* ---------- Synthèse : trois plafonds et niveau retenu ---------- */
+  function profil(scoreR, ev) {
+    const T = toleranceDepuisR(scoreR);
+    const final = Math.min(T, ev.C, ev.H);
+    const limitants = [];
+    if (T === final) limitants.push("T");
+    if (ev.C === final) limitants.push("C");
+    if (ev.H === final) limitants.push("H");
+    return { T, C: ev.C, H: ev.H, final, limitants };
+  }
+
+  const api = { visibles, complet, evaluer, encoder, decoder, toleranceDepuisR, profil, ajuster, crises, pire, arrondir, lambda, filtrer };
+  root.MoteurRisque = api;
+  if (typeof module !== "undefined") module.exports = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
 /* Calcul des scores — fonctions pures, utilisables dans le navigateur et sous Node.
    © QuidHabes — Alexandre Hezez, 2026 */
 (function (root) {
@@ -1348,6 +1691,7 @@ window.TEXTES.OCIT = {
   "use strict";
   const Q = window.QUESTIONS, AXES = window.AXES, P = window.PROFILS, F = window.FAMILLES;
   const CL = window.CLASSES, REF = window.REFERENCE, S = window.Scoring;
+  const RQ = window.RISQUE, MR = window.MoteurRisque;
   const app = document.getElementById("app");
   const AX4 = AXES.filter(a => a.id !== "X");
   const FAM_VAR = { SL: "--pat", SC: "--tac", OL: "--con", OC: "--opp" };
@@ -1386,6 +1730,7 @@ window.TEXTES.OCIT = {
     const mark = id => { const a = document.querySelector(`.nav a[data-nav="${id}"]`); if (a) a.setAttribute("aria-current", "page"); };
     if (h === "test-complet") { mark("test"); return renderTest("f"); }
     if (h === "test-court") { mark("test"); return renderTest("c"); }
+    if (h.startsWith("etape2/")) { const r = S.decode(h.slice(7)); if (r) { mark("test"); return renderEtape2(r); } }
     if (h.startsWith("r-")) { const r = S.decode(h); if (r) return renderResult(r); }
     if (h === "profils") { mark("profils"); return renderGallery(); }
     if (h.startsWith("profil-") && P[h.slice(7)]) { mark("profils"); return renderProfile(h.slice(7)); }
@@ -1406,6 +1751,7 @@ window.TEXTES.OCIT = {
           <span class="eyebrow">Investype · 16 profils pour découvrir quel investisseur vous êtes vraiment</span>
           <h1>Quel investisseur êtes-vous vraiment ?</h1>
           <p class="lead">Quatre axes, des mises en situation tirées de vraies crises de marché, et une confrontation entre ce que vous dites et ce que vous feriez. À la clé : votre profil, vos biais, et l'allocation type qui illustre votre tempérament.</p>
+          <p class="muted small">En option, une étape 2 de six minutes transforme votre tempérament en profil de risque indicatif et ajuste l'allocation à votre situation.</p>
           <p class="muted small">Outil pédagogique, gratuit et sans collecte de données. Il ne constitue pas un conseil en investissement. <a href="#avertissement">Avertissement</a></p>
           <div class="actions">
             <a class="btn" href="#test-complet">Passer le test complet <span class="meta">56 questions · 12 min</span></a>
@@ -1580,6 +1926,120 @@ window.TEXTES.OCIT = {
     }
   });
 
+  /* ---------- Étape 2 : questionnaire du profil de risque ---------- */
+  const qR = id => RQ.QUESTIONS.find(q => q.id === id);
+  const answered = (q, a) => q.multi ? Array.isArray(a) && a.length > 0 : typeof a === "number";
+  let E = null;
+  function renderEtape2(r) {
+    const saved = store.get("pi-risque-progress"), last = store.get("pi-risque");
+    const resumed = !!(saved && saved.rtoken === r.token);
+    const base = resumed ? saved.answers : last ? last.answers : {};
+    E = { r, answers: JSON.parse(JSON.stringify(base || {})), i: 0, resumed, prefilled: !resumed && !!last, intro: true };
+    drawIntroE2();
+  }
+  function e2Order() { return MR.visibles(E.answers).map(q => q.id); }
+  function drawIntroE2() {
+    const code = S.code(E.r.axes);
+    show(`<div class="test e2">
+      <div class="qcard">
+        <div class="qtag"><span class="chip">Étape 2 · facultative</span><span class="chip">22 à 25 questions · 6 min</span></div>
+        <h1 class="e2-title">De votre tempérament à votre profil de risque</h1>
+        <p>Le test a mesuré votre <strong>tolérance au risque</strong> : ce que vous êtes prêt à supporter. Un profil de risque dépend aussi de ce que votre situation <strong>peut</strong> supporter, du moment où vous aurez besoin de l'argent et de ce que vous savez des placements.</p>
+        <div class="e2-pillars">${RQ.BLOCS.map((b, i) => `<div><span class="mono muted">${i + 1}</span><strong>${b.nom}</strong><span class="muted small">${b.pilier}</span></div>`).join("")}</div>
+        <p>Le niveau retenu est <strong>le plus prudent de trois plafonds</strong> : votre tolérance, votre capacité de perte, votre horizon et vos objectifs. Vos connaissances décident des placements complexes qui restent possibles. Votre profil <strong class="mono">${code}</strong> garde son style à l'intérieur de ce budget de risque.</p>
+        <p class="muted small">Répondez pour la somme que vous envisagez d'investir. Des réponses inexactes ou incomplètes donnent un profil inexact. Vos réponses restent dans votre navigateur : rien n'est envoyé, et vous pourrez les effacer à tout moment.</p>
+        <div class="reg" role="note"><strong>Profil de risque indicatif.</strong> Sa structure suit les orientations de l'ESMA sur l'adéquation (MiFID II), appliquées en France par l'AMF. Il ne remplace pas l'évaluation de l'adéquation qu'un établissement agréé ou un conseiller en investissements financiers doit réaliser avant de vous conseiller, et ne recommande aucun produit. <a href="#avertissement">Avertissement</a></div>
+        <div class="actions"><button class="btn" id="e2-go">${E.resumed ? "Reprendre" : "Commencer"}</button><a class="btn ghost" href="#${E.r.token}">Retour au résultat</a></div>
+        ${E.prefilled ? `<p class="muted small">Vos réponses précédentes sont préremplies : confirmez-les ou modifiez-les.</p>` : ""}
+      </div></div>`);
+    document.getElementById("e2-go").addEventListener("click", () => {
+      E.intro = false;
+      const order = e2Order(), open = order.findIndex(id => !answered(qR(id), E.answers[id]));
+      E.i = E.resumed && open !== -1 ? open : 0;
+      drawE2();
+    });
+  }
+  function saveE2() { store.set("pi-risque-progress", { rtoken: E.r.token, answers: E.answers }); }
+  function drawE2() {
+    const order = e2Order();
+    if (E.i >= order.length) E.i = order.length - 1;
+    const id = order[E.i], q = qR(id), bloc = RQ.BLOCS.find(b => b.id === q.bloc), a = E.answers[id];
+    const firstOfBloc = order.findIndex(x => qR(x).bloc === q.bloc) === E.i;
+    const done = order.filter(x => answered(qR(x), E.answers[x])).length, n = order.length;
+    const opts = q.options.map((o, k) => {
+      const on = q.multi ? Array.isArray(a) && a.includes(k) : a === k;
+      return `<button class="opt${q.multi ? " multi" : ""}" data-o="${k}" aria-pressed="${on}"><span class="k">${q.multi ? (on ? "✓" : "") : "ABCDEFGH"[k]}</span><span>${o.t}</span></button>`;
+    }).join("");
+    const bn = RQ.BLOCS.findIndex(b => b.id === q.bloc) + 1;
+    show(`<div class="test e2">
+      <div class="progress">
+        <div class="progress-meta"><span>Étape 2 · bloc ${bn} sur ${RQ.BLOCS.length} · question ${E.i + 1} sur ${n}</span><span>${Math.round(done / n * 100)} %</span></div>
+        <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${n}" aria-valuenow="${done}"><i style="width:${done / n * 100}%"></i></div>
+      </div>
+      <div class="qcard">
+        <div class="qtag"><span class="chip date">${bloc.nom}</span><span class="chip">${bloc.pilier}</span>${q.theme ? `<span class="chip">${q.theme}</span>` : ""}</div>
+        ${firstOfBloc ? `<p class="e2-intro">${bloc.intro}</p>` : ""}
+        <p class="qtext" id="qtext">${q.texte}</p>
+        ${q.note ? `<p class="muted small" style="margin-top:-12px">${q.note}</p>` : ""}
+        ${q.aide ? `<div class="e2-aide">${q.aide}</div>` : ""}
+        <div class="options" role="group" aria-labelledby="qtext">${opts}</div>
+        ${q.multi ? `<div class="actions"><button class="btn" id="e2-ok" ${answered(q, a) ? "" : "disabled"}>Valider</button></div>` : ""}
+      </div>
+      <div class="test-nav">
+        <button class="linkbtn" id="prev">← ${E.i === 0 ? "Présentation" : "Question précédente"}</button>
+        <span class="kbd-hint">${q.multi ? "Plusieurs réponses possibles" : "Touches A à " + "ABCDEFGH"[q.options.length - 1]}</span>
+        <a class="linkbtn" href="#${E.r.token}">Interrompre</a>
+      </div>
+    </div>`);
+    app.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => q.multi ? toggleE2(+b.dataset.o) : answerE2(+b.dataset.o)));
+    const ok = document.getElementById("e2-ok");
+    if (ok) ok.addEventListener("click", nextE2);
+    document.getElementById("prev").addEventListener("click", () => { if (E.i > 0) { E.i--; drawE2(); } else { E.intro = true; drawIntroE2(); } });
+  }
+  function toggleE2(k) {
+    const id = e2Order()[E.i], q = qR(id);
+    let cur = Array.isArray(E.answers[id]) ? E.answers[id].slice() : [];
+    if (q.options[k].seul) cur = cur.includes(k) ? [] : [k];
+    else { cur = cur.filter(x => !q.options[x].seul); cur = cur.includes(k) ? cur.filter(x => x !== k) : cur.concat(k).sort((x, y) => x - y); }
+    E.answers[id] = cur;
+    saveE2();
+    drawE2();
+  }
+  function answerE2(k) {
+    const id = e2Order()[E.i];
+    E.answers[id] = k;
+    /* Arbre de durabilité : sans préférence, les questions détaillées sont effacées */
+    if (id === "D1" && k !== 0) ["D2", "D3", "D4"].forEach(x => delete E.answers[x]);
+    saveE2();
+    app.querySelectorAll(".opt").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.o === k)));
+    setTimeout(nextE2, 220);
+  }
+  function nextE2() {
+    if (!E) return;
+    /* Avance question par question (les réponses préremplies restent à confirmer), puis termine si tout est rempli */
+    const order = e2Order();
+    if (E.i < order.length - 1) { E.i++; return drawE2(); }
+    if (MR.complet(E.answers)) return finishE2();
+    E.i = order.findIndex(x => !answered(qR(x), E.answers[x])); drawE2();
+  }
+  function finishE2() {
+    const ev = MR.evaluer(E.answers), full = E.r.token + MR.encoder(ev);
+    store.set("pi-risque", { answers: E.answers });
+    store.del("pi-risque-progress");
+    const last = store.get("pi-dernier");
+    if (last && last.token && last.token.split("~")[0] === E.r.token) store.set("pi-dernier", { token: full, code: last.code });
+    E = null;
+    location.hash = full;
+  }
+  document.addEventListener("keydown", e => {
+    if (!E || E.intro || !location.hash.startsWith("#etape2") || e.metaKey || e.ctrlKey || e.altKey) return;
+    const q = qR(e2Order()[E.i]);
+    if (e.key === "ArrowLeft") { if (E.i > 0) { e.preventDefault(); E.i--; drawE2(); } return; }
+    if (q.multi) return;
+    const k = "abcdefgh".indexOf(e.key.toLowerCase());
+    if (k !== -1 && k < q.options.length) answerE2(k);
+  });
+
   /* ---------- Blocs partagés résultat / fiche ---------- */
   const TX = window.TEXTES, CR = window.CRISES, FA = window.FACTEURS;
   const flip = (code, idx) => code.split("").map((ch, i) => idx.includes(i) ? AX4[i].p1.l === ch ? AX4[i].p2.l : AX4[i].p1.l : ch).join("");
@@ -1599,7 +2059,7 @@ window.TEXTES.OCIT = {
   const fmt = (x, d) => (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x).toFixed(d || 0).replace(".", ",");
   const darkText = hex => { const n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 150; };
 
-  function profileBlocks(code) {
+  function profileBlocks(code, resultat) {
     const p = P[code], t = TX[code], fam = famColor(code);
     const ally = flip(code, [2, 3]), cousin = flip(code, [0]), contra = flip(code, [0, 1, 2, 3]);
     const mini = (c, label, why) => `<a class="rel" href="#profil-${c}" style="--fam:${famColor(c)}">${emblem(c)}<span><span class="eyebrow">${label}</span><strong>${P[c].nom}</strong> <span class="mono muted">${c}</span><br><span class="muted">${why}</span></span></a>`;
@@ -1625,7 +2085,7 @@ window.TEXTES.OCIT = {
 
       <section class="chapter"><span class="eyebrow">Chapitre 3</span><h2>Ce que les autres voient de vous</h2><p class="prose">${t.regard}</p></section>
 
-      ${allocationBlock(code)}
+      ${allocationBlock(code, resultat)}
 
       <section class="chapter"><span class="eyebrow">Chapitre 5</span><h2>Ce qui vous fait perdre de l'argent</h2>
         <p class="prose">${t.pertes}</p>
@@ -1650,7 +2110,7 @@ window.TEXTES.OCIT = {
     </div>`;
   }
 
-  function allocationBlock(code) {
+  function allocationBlock(code, resultat) {
     const p = P[code], t = TX[code], st = stats(p.alloc), rs = stats(REF.alloc);
     const bar = CL.filter(c => p.alloc[c.id] > 0).map(c => `<span style="width:${p.alloc[c.id]}%;background:${c.couleur};color:${darkText(c.couleur) ? "#132029" : "#fff"}" title="${c.nom} : ${p.alloc[c.id]} %">${p.alloc[c.id] >= 7 ? p.alloc[c.id] + "%" : ""}</span>`).join("");
     const groups = [...new Set(CL.map(c => c.groupe))];
@@ -1685,7 +2145,7 @@ window.TEXTES.OCIT = {
     const fdefs = FA.filter(f => neutral || p.facteurs[f.id] !== 0).map(f => `<li><strong>${f.nom}.</strong> ${f.def} <span class="muted">${f.recherche}.</span></li>`).join("");
     return `<section class="chapter" style="--fam:${famColor(code)}">
       <span class="eyebrow">Chapitre 4</span><h2>L'allocation type de votre profil</h2>
-      <div class="reg" role="note"><strong>Illustration pédagogique, pas un conseil en investissement.</strong> Cette allocation décrit l'archétype « ${p.nom} ». Elle ne tient compte ni de votre patrimoine, ni de vos revenus, ni de vos objectifs, ni de votre horizon, et ne vise aucun produit financier. <a href="#avertissement">Lire l'avertissement</a></div>
+      <div class="reg" role="note"><strong>Illustration pédagogique, pas un conseil en investissement.</strong> Cette allocation décrit l'archétype « ${p.nom} ». Elle ne tient compte ni de votre patrimoine, ni de vos revenus, ni de vos objectifs, ni de votre horizon, et ne vise aucun produit financier. ${resultat ? (riskToken() ? "Votre allocation ajustée à votre situation figure plus haut, dans la partie Étape 2. " : "L'étape 2 facultative, plus haut, l'ajuste à votre situation. ") : ""}<a href="#avertissement">Lire l'avertissement</a></div>
       <p class="prose">${t.actifsPourquoi}</p>
 
       <div class="model"><span class="eyebrow">Portefeuille de référence</span><strong>${p.modele.nom}</strong><span class="muted">${p.modele.desc}</span></div>
@@ -1718,6 +2178,126 @@ window.TEXTES.OCIT = {
         <div class="panel"><div class="callout"><span class="eyebrow">Garde-fou en une ligne</span><p>${p.gardeFou}</p></div>
           <p class="muted small">Le niveau de risque est déduit de la pire perte estimée en crise, sans prévision de rendement ; les pertes en crise sont des estimations historiques arrondies. Les performances passées ne préjugent pas des performances futures. Tout investissement comporte un risque de perte en capital.</p></div>
       </div>
+    </section>`;
+  }
+
+  /* ---------- Étape 2 : section du résultat ---------- */
+  const LIBS = { S1: "épargne de précaution", S2: "part de votre patrimoine investie", S3: "stabilité de vos revenus", S4: "endettement", S5: "conséquences d'une perte de 30 %", S6: "besoin probable de liquidités", S7: "concentration de votre patrimoine", S8: "perte supportable en euros",
+    O1: "horizon de placement", O2: "objectif du placement", O3: "retraits réguliers" };
+  const nomCl = id => (CL.find(c => c.id === id) || { nom: id }).nom;
+  const SUBNOM = { MON: "monétaire", GOVC: "obligations d'État courtes", INFL: "obligations indexées sur l'inflation", IG: "crédit de qualité (investment grade)", ACTD: "actions des pays développés", SMALL: "petites capitalisations", OR: "or" };
+  const courtCl = id => SUBNOM[id] || nomCl(id).toLowerCase();
+  const scale5 = n => `<span class="pscale" aria-hidden="true">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= n ? "on" : ""}"></i>`).join("")}</span>`;
+  function riskToken() { return MR.decoder(decodeURIComponent(location.hash || "")); }
+  function localRisk(k) {
+    const loc = store.get("pi-risque");
+    if (!loc || !loc.answers || !k) return null;
+    try { return MR.encoder(MR.evaluer(loc.answers)) === k.token ? loc.answers : null; } catch (e) { return null; }
+  }
+  function ctaE2(r) {
+    return `<section class="panel e2-cta" style="margin-top:32px">
+      <div><span class="eyebrow">Étape 2 · facultative · environ 6 minutes</span>
+        <h2>Passez de votre tempérament à votre profil de risque</h2>
+        <p class="muted">Votre tempérament dit ce que vous êtes prêt à supporter. Votre situation, votre horizon et vos connaissances disent ce que vous pouvez supporter. L'étape 2 croise les deux, selon la structure des orientations européennes sur l'adéquation, et ajuste l'allocation de votre profil à votre niveau de risque.</p></div>
+      <div class="actions"><a class="btn" href="#etape2/${r.token}">Commencer l'étape 2</a></div>
+    </section>`;
+  }
+  function risqueSignals(r, k, pr) {
+    const out = [], sig = (cls, label, txt) => out.push(`<div class="signal"><span class="pill ${cls}">${label}</span><span>${txt}</span></div>`);
+    const d = pr.T - pr.C;
+    if (d >= 2) sig("warn", "Tempérament > situation", "Votre tempérament est nettement plus offensif que votre situation ne le permet. C'est votre capacité de perte qui fixe le niveau : une perte que votre situation ne peut pas absorber vous obligerait à vendre au pire moment, quel que soit votre tempérament.");
+    else if (d === 1) sig("info", "Tempérament > situation", "Votre situation limite d'un cran le niveau de risque que votre tempérament accepterait.");
+    else if (d <= -2) sig("good", "Situation > tempérament", "Votre situation permettrait davantage de risque que votre tempérament n'en accepte. C'est votre tempérament qui fixe le niveau, et c'est légitime : un placement que l'on ne supporte pas finit souvent vendu au mauvais moment.");
+    if (pr.H < Math.min(pr.T, pr.C)) sig("warn", "Horizon", `Votre horizon ou votre objectif est la contrainte la plus forte (${k.bindO.map(x => LIBS[x]).join(", ")}). Une somme dont on a besoin bientôt ne peut pas attendre la fin d'une crise.`);
+    if (k.W) sig("warn", "Contradiction", "Deux de vos réponses sur votre capacité de perte se contredisent : les conséquences d'une perte de 30 % et la perte que vous pourriez supporter en euros. Le niveau le plus prudent est retenu ; un conseiller devrait lever cette contradiction avec vous.");
+    if (k.X === 2) sig("warn", "Concentration", "Plus de la moitié de votre patrimoine est déjà exposée à un même risque. Votre capacité de perte est plafonnée, et la diversification de cette somme compte davantage que son rendement.");
+    else if (k.X === 1) sig("info", "Concentration", "Une partie de votre patrimoine est déjà exposée à un même risque : évitez d'y ajouter des placements qui en dépendent.");
+    if (k.L === 2) sig("info", "Liquidité", "Vous aurez probablement besoin d'une partie de cette somme avant l'échéance : l'immobilier non coté et le non coté sont exclus de l'allocation.");
+    else if (k.L === 1) sig("info", "Liquidité", "Un retrait anticipé est possible : la part d'immobilier non coté et de non coté est réduite de moitié.");
+    const DL = ["débutant", "intermédiaire", "confirmé", "expert"][k.D - 1];
+    if (k.D >= 3 && k.K <= 3) sig("warn", "Connaissances", `Vous vous estimez ${DL}, mais le quiz donne ${k.K} bonne${k.K > 1 ? "s" : ""} réponse${k.K > 1 ? "s" : ""} sur 6. Surestimer ses connaissances est un risque que les orientations européennes demandent explicitement de détecter.`);
+    else if (k.D === 1 && k.K >= 5) sig("good", "Connaissances", `Vous vous estimez débutant, mais le quiz donne ${k.K} bonnes réponses sur 6 : vous en savez plus que vous ne le pensez.`);
+    else sig("good", "Connaissances", `Vos connaissances déclarées (${DL}) et mesurées (${k.K} sur 6) concordent.`);
+    if (r.mode === "c") sig("info", "Version courte", "Votre tolérance a été mesurée par la version courte, avec quatre questions sur l'axe Risque contre douze dans le test complet.");
+    if (r.coherence !== null && r.coherence < 60) sig("warn", "Cohérence", "Vos réponses au test de tempérament se contredisent souvent : la tolérance retenue est fragile.");
+    return out.join("");
+  }
+  function riskSection(r, code) {
+    const k = riskToken();
+    if (!k) return ctaE2(r);
+    const sR = r.axes.R.score, pr = MR.profil(sR, k), N = RQ.NIVEAUX[pr.final - 1];
+    const p = P[code], nat = stats(p.alloc), natPire = Math.min(...nat.crises), natN = niveau(natPire).n;
+    const adj = MR.ajuster(p.alloc, pr.final, k.masque, k.L, CL), st = stats(adj.alloc), adjPire = Math.min(...st.crises);
+    const lim = key => pr.limitants.includes(key);
+    const card = (key, titre, n, detail) => `<div class="lvl${lim(key) ? " bind" : ""}">
+        <span class="eyebrow">${titre}</span><span class="kpi kpi-word">${RQ.NIVEAUX[n - 1].nom}</span>${scale5(n)}
+        <span class="muted small">${detail}</span>${lim(key) ? `<span class="pill warn">Plafond retenu</span>` : ""}</div>`;
+    const tolTxt = `Axe Risque : ${sR > 50 ? sR + " % Offensive" : (100 - sR) + " % Sécurité"}, mesuré par vos réponses au test`;
+    const capTxt = k.bindS.length ? "Limitée par : " + k.bindS.map(x => LIBS[x]).join(", ") : "Aucune contrainte particulière";
+    const horTxt = k.bindO.length ? "Limités par : " + k.bindO.map(x => LIBS[x]).join(", ") : "Aucune contrainte particulière";
+
+    /* Classes retirées, regroupées */
+    const ret = {};
+    adj.retirees.forEach(x => { const o = ret[x.id] || (ret[x.id] = { id: x.id, w: 0, causes: new Set(), vers: x.vers }); o.w += x.w; o.causes.add(x.cause); });
+    const retList = Object.values(ret).map(x => `<li><span><strong>${nomCl(x.id)}</strong> (${Math.round(x.w)} % de l'allocation naturelle) → ${Object.keys(x.vers).map(courtCl).join(" et ")}. <span class="muted">${[...x.causes].map(c => c === "liquidite" ? "Besoin de liquidités." : "Connaissances ou expérience insuffisantes pour ce type de placement.").join(" ")}</span></span></li>`).join("");
+    const lam = Math.round(adj.lambda * 100);
+    const phrase = adj.lambda >= 0.995
+      ? (adj.retirees.length ? `L'allocation naturelle de votre profil respecte déjà le niveau ${N.nom.toLowerCase()} ; seules les classes indiquées plus bas sont remplacées.` : `L'allocation naturelle de votre profil respecte déjà le niveau ${N.nom.toLowerCase()} : elle est conservée telle quelle.`)
+      : `Pour respecter le niveau ${N.nom.toLowerCase()}, votre allocation conserve <strong>${lam} %</strong> de l'allocation de votre profil ; les ${100 - lam} % restants vont dans une poche de sécurité (40 % monétaire, 30 % obligations d'État courtes, 30 % crédit de qualité).`;
+
+    const bar = CL.filter(c => adj.alloc[c.id] > 0).map(c => `<span style="width:${adj.alloc[c.id]}%;background:${c.couleur};color:${darkText(c.couleur) ? "#132029" : "#fff"}" title="${c.nom} : ${adj.alloc[c.id]} %">${adj.alloc[c.id] >= 7 ? adj.alloc[c.id] + "%" : ""}</span>`).join("");
+    const rows = CL.filter(c => p.alloc[c.id] > 0 || adj.alloc[c.id] > 0).map(c => {
+      const a = p.alloc[c.id], b = adj.alloc[c.id], dd = b - a;
+      return `<tr><td><span class="sw" style="background:${c.couleur}"></span>${c.nom}</td><td class="n muted">${a} %</td><td class="n"><strong>${b} %</strong></td><td class="n"><span class="delta ${dd > 0 ? "up" : dd < 0 ? "down" : ""}">${dd === 0 ? "=" : fmt(dd)}</span></td></tr>`;
+    }).join("");
+
+    /* Connaissances et durabilité */
+    const loc = localRisk(k);
+    const quiz = loc ? `<details class="fdetails"><summary>Revoir le quiz</summary><ul class="list quiz">${["K1", "K2", "K3", "K4", "K5", "K6"].map(id => {
+        const q = qR(id), a = loc[id], good = typeof a === "number" && q.options[a].ok, rep = q.options.find(o => o.ok).t;
+        return `<li class="${good ? "ok" : "ko"}"><span><strong>${q.theme} ${good ? "✓" : "✗"}</strong> ${good ? "" : `Bonne réponse : ${rep}. `}<span class="muted">${q.explication}</span></span></li>`; }).join("")}</ul></details>` : "";
+    const complexes = RQ.COMPLEXES.map((c, i) => `<li class="${k.masque[i] === "1" ? "ok" : "ko"}"><span><strong>${nomCl(c.id)}</strong> : ${k.masque[i] === "1" ? "accessible" : "non accessible"}<br><span class="muted small">Condition : ${c.regle.charAt(0).toLowerCase() + c.regle.slice(1)}.</span></span></li>`).join("");
+    let dur;
+    if (!k.S) dur = `<p class="muted">Pas de préférence de durabilité exprimée.</p>`;
+    else if (loc) {
+      const ev = MR.evaluer(loc);
+      dur = `<ul class="list"><li><span>Part minimale alignée sur la taxonomie européenne : <strong>${ev.dur.taxo ? ev.dur.taxo + " %" : "pas de minimum"}</strong></span></li><li><span>Part minimale d'investissements durables (SFDR) : <strong>${ev.dur.sfdr ? ev.dur.sfdr + " %" : "pas de minimum"}</strong></span></li><li><span>Principales incidences négatives : <strong>${ev.dur.pai.length ? ev.dur.pai.join(", ").toLowerCase() : "pas de préférence"}</strong></span></li></ul>`;
+    } else dur = `<p>Vous avez exprimé des préférences de durabilité. Leur détail reste sur l'appareil où vous avez répondu.</p>`;
+
+    return `<section class="e2-res" style="margin-top:40px;--fam:${famColor(code)}">
+      <div class="sec-head"><span class="eyebrow">Étape 2 · profil de risque indicatif</span>
+        <h2>Votre profil de risque : ${N.nom} <span class="mono muted">${pr.final}/5</span></h2>
+        <p class="muted">Le plus prudent de trois plafonds. Pire perte de crise tolérée : ${N.court}.</p></div>
+      <div class="reg" role="note"><strong>Profil indicatif, pas une évaluation de l'adéquation.</strong> Sa structure suit les orientations de l'ESMA sur l'adéquation (MiFID II). Il ne remplace pas l'évaluation qu'un établissement agréé ou un conseiller en investissements financiers doit réaliser, et ne recommande aucun produit. <a href="#avertissement">Avertissement</a></div>
+      <div class="ladder">
+        ${card("T", "Tolérance · votre tempérament", pr.T, tolTxt)}
+        ${card("C", "Capacité de perte · votre situation", pr.C, capTxt)}
+        ${card("H", "Horizon et objectifs", pr.H, horTxt)}
+        <div class="lvl final"><span class="eyebrow">Niveau retenu</span><span class="kpi kpi-word">${N.nom}</span>${scale5(pr.final)}<span class="muted small">Votre profil ${code} : allocation naturelle de niveau ${natN}/5 (pire crise ${fmt(natPire)} %)</span></div>
+      </div>
+      <div class="grid2" style="margin-top:20px">
+        <div class="panel"><h3>Ce que révèle l'étape 2</h3><div class="signals">${risqueSignals(r, k, pr)}</div></div>
+        <div class="panel"><h3>Connaissances et durabilité</h3>
+          <p>Quiz : <strong>${k.K} bonne${k.K > 1 ? "s" : ""} réponse${k.K > 1 ? "s" : ""} sur 6</strong> · niveau déclaré : ${["débutant", "intermédiaire", "confirmé", "expert"][k.D - 1]}</p>
+          <ul class="list cplx">${complexes}</ul>${quiz}
+          <span class="eyebrow">Préférences de durabilité</span>${dur}
+          <p class="muted small">Investype raisonne par classes d'actifs et ne sélectionne aucun fonds : vos préférences de durabilité ne modifient pas l'allocation. Elles s'appliqueraient au choix des produits.</p></div>
+      </div>
+      <div class="panel" style="margin-top:20px">
+        <h3>Votre allocation ajustée <span class="eyebrow">${code} · niveau ${N.nom.toLowerCase()}</span></h3>
+        <p>${phrase}</p>
+        <div class="kpis">
+          <div><span class="eyebrow">Niveau de risque</span><span class="kpi">${niveau(adjPire).n}/5</span><span class="muted">${niveau(adjPire).mot.toLowerCase()} · allocation naturelle : ${natN}/5</span></div>
+          <div><span class="eyebrow">Actions</span><span class="kpi">${st.actions} %</span><span class="muted">allocation naturelle : ${nat.actions} %</span></div>
+          <div><span class="eyebrow">Pire crise estimée</span><span class="kpi">${fmt(adjPire)} %</span><span class="muted">allocation naturelle : ${fmt(natPire)} %</span></div>
+          <div><span class="eyebrow">Liquidité</span><span class="kpi">${st.liq} %</span><span class="muted">allocation naturelle : ${nat.liq} %</span></div>
+        </div>
+        <div class="alloc-bar" role="img" aria-label="Allocation ajustée">${bar}</div>
+        <div class="table-wrap"><table class="alloc-table"><thead><tr><th>Classe d'actifs</th><th style="text-align:right">Naturelle</th><th style="text-align:right">Ajustée</th><th style="text-align:right">Écart</th></tr></thead><tbody>${rows}</tbody></table></div>
+        ${retList ? `<div><span class="eyebrow">Classes remplacées</span><ul class="list">${retList}</ul></div>` : ""}
+        <p class="muted small">Le niveau retenu est un plafond, pas un objectif : l'étape 2 n'ajoute jamais de risque à l'allocation de votre profil. Pertes de crise estimées sur 2008, le krach de 2020 et 2022 ; ordres de grandeur, sans prévision de rendement. Tout investissement comporte un risque de perte en capital.</p>
+      </div>
+      <div class="actions" style="margin-top:20px"><a class="btn ghost" href="#etape2/${r.token}">Modifier mes réponses</a><button class="btn ghost" id="e2-del">Effacer mes réponses de cet appareil</button></div>
     </section>`;
   }
 
@@ -1791,13 +2371,16 @@ window.TEXTES.OCIT = {
         </div>
       </section>
 
-      <div style="margin-top:40px">${profileBlocks(code)}</div>
+      ${riskSection(r, code)}
+
+      <div style="margin-top:40px">${profileBlocks(code, true)}</div>
 
       <section style="margin-top:56px">
         <div class="grid2">
           <div class="panel"><h3>Partager votre résultat</h3>
             <p class="muted" style="font-size:.92rem">Votre code de résultat contient vos scores. Envoyez-le à vos amis pour comparer vos profils.</p>
             <div class="share"><input id="share-code" readonly value="${r.token}" aria-label="Code de résultat"><button class="btn ghost" id="copy">Copier</button></div>
+            ${riskToken() ? `<label class="check"><input type="checkbox" id="share-k"> Inclure mon profil de risque (niveaux seulement, aucun montant ni réponse détaillée)</label>` : ""}
             <span class="toast" id="toast" aria-live="polite"></span>
           </div>
           <div class="panel"><h3>Comparer avec un ami</h3>
@@ -1808,8 +2391,12 @@ window.TEXTES.OCIT = {
         </div>
         <div class="actions" style="margin-top:24px"><a class="btn" href="#test-complet">Refaire le test</a><a class="btn ghost" href="#profils">Voir les 16 profils</a></div>
       </section>
-      <p class="disclaimer" style="margin-top:40px">Ce test est un outil pédagogique de connaissance de soi et de sensibilisation aux biais comportementaux. Il ne constitue ni un conseil en investissement, ni une recommandation personnalisée, ni une évaluation de l'adéquation au sens de la réglementation (MIF 2). Il mesure votre tempérament face au risque, pas votre capacité financière à supporter des pertes. Avant toute décision, consultez un professionnel habilité. Aucune donnée n'est envoyée : vos réponses restent dans votre navigateur. <a href="#avertissement">Avertissement complet</a></p>
+      <p class="disclaimer" style="margin-top:40px">Ce test est un outil pédagogique de connaissance de soi et de sensibilisation aux biais comportementaux. Il ne constitue ni un conseil en investissement, ni une recommandation personnalisée, ni une évaluation de l'adéquation au sens de la réglementation (MIF 2). Le test mesure votre tempérament face au risque ; l'étape 2 facultative en donne une lecture indicative croisée avec votre situation, votre horizon et vos connaissances, sans remplacer l'évaluation d'un professionnel. Avant toute décision, consultez un professionnel habilité. Aucune donnée n'est envoyée : vos réponses restent dans votre navigateur. <a href="#avertissement">Avertissement complet</a></p>
     `);
+    const shk = document.getElementById("share-k"), k0 = riskToken();
+    if (shk) shk.addEventListener("change", () => { document.getElementById("share-code").value = r.token + (shk.checked ? k0.token : ""); });
+    const del = document.getElementById("e2-del");
+    if (del) del.addEventListener("click", () => { store.del("pi-risque"); store.del("pi-risque-progress"); const l = store.get("pi-dernier"); if (l && l.token) store.set("pi-dernier", { token: l.token.split("~")[0], code: l.code }); location.hash = r.token; });
     document.getElementById("copy").addEventListener("click", () => {
       const inp = document.getElementById("share-code"), t = document.getElementById("toast");
       const val = inp.value;
@@ -1872,7 +2459,7 @@ window.TEXTES.OCIT = {
       <section style="margin-top:48px"><h2>Les fondements</h2>
         <p class="prose muted" style="margin-top:12px">Théorie des perspectives et aversion aux pertes (Kahneman et Tversky, 1979) ; typologies d'investisseurs de Bailard, Biehl et Kaiser (1986) et de Pompian ; échelle de tolérance au risque de Grable et Lytton (1999) ; choix de loteries de Holt et Laury (2002) ; test de réflexion cognitive de Frederick (2005). Les liens entre biais et comportements s'appuient sur les travaux de Shefrin et Statman (1985), Barber et Odean (2000), Huberman (2001) et Kumar (2009).</p></section>
       <section style="margin-top:48px"><h2>Les allocations d'actifs</h2>
-        <p class="prose muted" style="margin-top:12px">Chaque profil reçoit une allocation naturelle sur quinze classes d'actifs, construite par écart à un portefeuille de référence documenté (Graham, Bogle, Browne, Dalio, Swensen, Buffett, Faber, De Bondt et Thaler…), et une inclinaison factorielle de sa poche actions. Le niveau de risque, sur cinq niveaux, est déduit de la pire perte estimée de l'allocation sur les trois crises de référence : faible au-dessus de −11 %, modéré jusqu'à −18 %, intermédiaire jusqu'à −25 % (le 60/40 se situe à −23 %), élevé jusqu'à −32 %, très élevé au-delà. Aucun rendement chiffré n'est affiché ; les hypothèses de long terme d'Amundi (second semestre 2026) et de J.P. Morgan (2026) ont seulement servi à construire les allocations. Règle de cohérence : tout profil Offensive a un niveau de risque supérieur à celui du 60/40, et tout profil Sécurité un niveau inférieur ou égal. Les performances en crise sont des ordres de grandeur en euros, calculés classe par classe pour 2008, le krach de février-mars 2020 et 2022. Pour l'immobilier non coté et le non coté financier, ce sont des pertes « économiques » : les valeurs publiées (SCPI, fonds non cotés) baissent moins et plus tard, car elles reposent sur des expertises périodiques. L'immobilier coté (foncières) se comporte comme des actions ; il n'est presque pas utilisé dans les allocations. L'indicateur de liquidité mesure la part du portefeuille mobilisable en moins d'un mois : élevée au-delà de 90 %, moyenne entre 70 % et 90 %, faible en dessous.</p>
+        <p class="prose muted" style="margin-top:12px">Chaque profil reçoit une allocation naturelle sur quinze classes d'actifs, construite par écart à un portefeuille de référence documenté (Graham, Bogle, Browne, Dalio, Swensen, Buffett, Faber, De Bondt et Thaler…), et une inclinaison factorielle de sa poche actions. Le niveau de risque, sur cinq niveaux, est déduit de la pire perte estimée de l'allocation sur les trois crises de référence : faible au-dessus de −11 %, modéré jusqu'à −18 %, intermédiaire jusqu'à −25 % (le 60/40 se situe à −23 %), élevé jusqu'à −32,5 %, très élevé au-delà. Aucun rendement chiffré n'est affiché ; les hypothèses de long terme d'Amundi (second semestre 2026) et de J.P. Morgan (2026) ont seulement servi à construire les allocations. Règle de cohérence : tout profil Offensive a un niveau de risque supérieur à celui du 60/40, et tout profil Sécurité un niveau inférieur ou égal. Les performances en crise sont des ordres de grandeur en euros, calculés classe par classe pour 2008, le krach de février-mars 2020 et 2022. Pour l'immobilier non coté et le non coté financier, ce sont des pertes « économiques » : les valeurs publiées (SCPI, fonds non cotés) baissent moins et plus tard, car elles reposent sur des expertises périodiques. L'immobilier coté (foncières) se comporte comme des actions ; il n'est presque pas utilisé dans les allocations. L'indicateur de liquidité mesure la part du portefeuille mobilisable en moins d'un mois : élevée au-delà de 90 %, moyenne entre 70 % et 90 %, faible en dessous.</p>
         <div class="table-wrap" style="margin-top:16px"><table class="mtable"><thead><tr><th>Classe d'actifs</th><th>2008</th><th>Krach 2020</th><th>2022</th><th>Liquidité</th></tr></thead><tbody>
           ${CL.map(c => `<tr><td>${c.nom}</td>${c.c.map(x => `<td class="mono">${fmt(x)} %</td>`).join("")}<td>${window.ILLIQUIDES.includes(c.id) ? "plus d'un mois" : "moins d'un mois"}</td></tr>`).join("")}
         </tbody></table></div></section>
@@ -1882,12 +2469,26 @@ window.TEXTES.OCIT = {
           ${FA.map(f => `<tr><td><strong>${f.nom}</strong></td><td>${f.def}</td><td>${f.recherche}</td><td>${f.crises}</td></tr>`).join("")}
         </tbody></table></div>
         <p class="muted small" style="margin-top:8px">${window.SOURCES_FACTEURS}</p></section>
+      <section style="margin-top:48px"><h2>L'étape 2 : le profil de risque indicatif</h2>
+        <p class="prose muted" style="margin-top:12px">L'étape 2 reprend la structure que les orientations de l'ESMA sur l'adéquation (MiFID II, 2022), appliquées en France par l'AMF (position DOC-2019-03), imposent aux établissements qui conseillent : connaissances et expérience, situation financière et capacité à subir des pertes, objectifs, tolérance au risque et préférences de durabilité. Elle n'en a pas la portée : elle ne remplace pas l'évaluation d'un professionnel et ne recommande aucun produit.</p>
+        <ol class="steps prose" style="margin-top:16px">
+          <li><strong>Tolérance.</strong> Elle vient de l'axe Risque du test, mesuré par des mises en situation et des arbitrages chiffrés plutôt que par l'auto-évaluation, comme le recommandent les orientations européennes. Score jusqu'à 20 : niveau 1 ; jusqu'à 35 : 2 ; jusqu'à 50 : 3 ; jusqu'à 70 : 4 ; au-delà : 5.</li>
+          <li><strong>Capacité de perte.</strong> Huit questions factuelles sur la situation (épargne de précaution, part du patrimoine, revenus, endettement, besoin de liquidités, concentration, conséquences d'une perte, perte supportable en euros). Chaque réponse fixe un plafond ; la capacité est le plus bas d'entre eux. Elle est mesurée séparément de la tolérance : lors de ses contrôles, l'AMF a reproché à certains établissements de confondre les deux.</li>
+          <li><strong>Horizon et objectifs.</strong> Échéance, but du placement et retraits prévus fixent un troisième plafond.</li>
+          <li><strong>Niveau retenu.</strong> Le plus prudent des trois plafonds, sur la même échelle que le niveau de risque des allocations : pire perte de crise jusqu'à −11 %, −18 %, −25 %, −32,5 %, puis sans plafond.</li>
+          <li><strong>Connaissances.</strong> Un quiz de six questions factuelles. Le haut rendement, la dette privée, le capital-investissement, les stratégies alternatives et les crypto-actifs ne restent dans l'allocation que si les questions correspondantes sont réussies ; pour le capital-investissement et les crypto-actifs, il faut aussi une expérience de ces placements, un métier de la finance ou au moins cinq bonnes réponses. Sinon, ils sont remplacés par un équivalent liquide et simple. Un besoin de liquidités exclut ou réduit de moitié les placements peu liquides.</li>
+          <li><strong>Allocation ajustée.</strong> Allocation du profil × λ + poche de sécurité × (1 − λ), où λ est la plus grande part qui respecte le seuil dans chacune des trois crises de référence. La poche de sécurité comprend 40 % de monétaire, 30 % d'obligations d'État courtes et 30 % de crédit de qualité. Le niveau retenu est un plafond : on n'ajoute jamais de risque à l'allocation du profil.</li>
+          <li><strong>Contrôles de cohérence.</strong> Écart entre tempérament et situation, contradiction entre deux mesures de la capacité de perte, écart entre connaissances déclarées et mesurées, concentration du patrimoine.</li>
+          <li><strong>Durabilité.</strong> Questions en arbre et explications neutres, sur le modèle des bonnes pratiques relevées par l'AMF. Les préférences sont affichées mais ne modifient pas l'allocation, qui ne vise aucun produit. Les définitions utilisées sont celles en vigueur ; le règlement SFDR est en cours de révision.</li>
+        </ol>
+        <p class="prose muted" style="margin-top:12px">La réforme européenne de l'investissement de détail, en cours d'adoption, recentre l'adéquation sur la diversification et la capacité à supporter des pertes ; son application est attendue vers 2029.</p>
+        <ul class="list prose" style="margin-top:12px">${RQ.SOURCES.map(x => `<li><a href="${x.u}" target="_blank" rel="noopener">${x.t}</a></li>`).join("")}</ul></section>
       <section style="margin-top:48px"><h2>Sources</h2>
         <ul class="list prose" style="margin-top:12px">${window.SOURCES.map(x => `<li><a href="${x.u}" target="_blank" rel="noopener">${x.t}</a></li>`).join("")}</ul>
         <h3 style="margin-top:24px">Recherche citée</h3>
         <ul class="list prose muted" style="margin-top:12px">${window.RECHERCHE.map(x => `<li>${x}</li>`).join("")}</ul></section>
       <section style="margin-top:48px"><h2>Les limites</h2>
-        <p class="prose muted" style="margin-top:12px">Ce test décrit un tempérament ; il ne remplace ni un questionnaire d'adéquation réglementaire, ni un conseil en investissement. Les allocations sont illustratives. Les codes à quatre lettres simplifient des scores continus : regardez toujours l'intensité de chaque axe. La version actuelle n'a pas encore fait l'objet d'une validation statistique sur un large échantillon. <a href="#avertissement">Avertissement et mentions légales</a></p></section>
+        <p class="prose muted" style="margin-top:12px">Ce test décrit un tempérament ; l'étape 2 en donne une lecture indicative croisée avec la situation de chacun. Ni l'un ni l'autre ne remplace un questionnaire d'adéquation réglementaire ou un conseil en investissement. Les allocations sont illustratives. Les codes à quatre lettres simplifient des scores continus : regardez toujours l'intensité de chaque axe. La version actuelle n'a pas encore fait l'objet d'une validation statistique sur un large échantillon. <a href="#avertissement">Avertissement et mentions légales</a></p></section>
       <div class="actions" style="margin-top:32px"><a class="btn" href="#test-complet">Passer le test</a></div>`);
   }
 
@@ -1903,6 +2504,7 @@ window.TEXTES.OCIT = {
         <p>Les profils, allocations types, actifs préférés et garde-fous décrivent des archétypes d'investisseurs. Ils ne tiennent compte ni de votre situation financière, patrimoniale et fiscale, ni de vos objectifs, ni de votre horizon de placement, ni de votre capacité à supporter des pertes.</p>
         <h2>3. Ce n'est pas un questionnaire réglementaire</h2>
         <p>Ce test ne remplace pas l'évaluation de l'adéquation ou du caractère approprié que tout prestataire de services d'investissement ou conseiller doit réaliser avant de vous recommander ou de vous vendre un produit, en application de la directive MIF 2.</p>
+        <p>L'étape 2 facultative produit un profil de risque indicatif dont la structure suit les orientations de l'ESMA sur l'adéquation. Ce n'est ni une évaluation de l'adéquation, ni un profil établi ou validé par l'Autorité des marchés financiers ou par l'ESMA. Les allocations ajustées restent des illustrations par classes d'actifs. Un établissement agréé ou un conseiller recueillera ses propres informations, avec son propre questionnaire et sa propre classification des produits.</p>
         <h2>4. Chiffres et hypothèses</h2>
         <p>Investype n'affiche aucun rendement chiffré. Le niveau de risque est déduit de pertes historiques estimées ; les allocations ont été construites à l'aide d'hypothèses de long terme publiées par des sociétés de gestion (Amundi, J.P. Morgan Asset Management), qui ne sont ni des garanties, ni des prévisions. Les performances en période de crise sont des estimations historiques arrondies, calculées par classe d'actifs. Les performances passées ne préjugent pas des performances futures.</p>
         <p>Tout investissement comporte un risque de perte en capital. Les actifs non cotés et l'immobilier non coté sont peu liquides et peuvent être difficiles à revendre. Les crypto-actifs sont très volatils et exposent à un risque de perte totale.</p>
@@ -1911,7 +2513,7 @@ window.TEXTES.OCIT = {
         <h2>6. Personnes citées</h2>
         <p>Les investisseurs, auteurs et institutions cités illustrent des styles d'investissement documentés. Leur mention n'implique aucune affiliation, approbation ou recommandation de leur part.</p>
         <h2>7. Données personnelles</h2>
-        <p>L'éditeur ne collecte aucune donnée personnelle. Vos réponses et votre dernier résultat sont enregistrés uniquement dans votre navigateur. Le code de résultat n'est partagé que si vous choisissez de le transmettre. L'hébergeur (GitHub) et le service de polices de caractères (Google Fonts) peuvent traiter l'adresse IP des visiteurs selon leurs propres politiques de confidentialité. Le site n'utilise aucun cookie.</p>
+        <p>L'éditeur ne collecte aucune donnée personnelle. Vos réponses et votre dernier résultat sont enregistrés uniquement dans votre navigateur ; c'est aussi le cas des réponses de l'étape 2 sur votre situation financière, que vous pouvez effacer depuis la page de résultat. Le code de résultat n'est partagé que si vous choisissez de le transmettre ; il n'inclut votre profil de risque que si vous cochez l'option correspondante, et ne contient alors que des niveaux, jamais de montants ni de réponses détaillées. L'hébergeur (GitHub) et le service de polices de caractères (Google Fonts) peuvent traiter l'adresse IP des visiteurs selon leurs propres politiques de confidentialité. Le site n'utilise aucun cookie.</p>
         <h2>8. Éditeur et hébergement</h2>
         <p>Investype est un projet personnel en phase de test, publié à titre non professionnel par Alexandre Hezez et partagé avec un cercle restreint. Il ne donne lieu à aucune rémunération. Hébergement : GitHub Pages, GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.</p>
         <p>Conception, questions, barème, noms et descriptions des profils : © 2026 QuidHabes. Toute reproduction sans autorisation est interdite.</p>
