@@ -379,6 +379,22 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 @media (max-width: 560px) { .ladder, .e2-pillars { grid-template-columns: minmax(0, 1fr); } .e2-cta { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 560px) { .signal { grid-template-columns: minmax(0, 1fr); gap: 6px; } .signal .pill { justify-self: start; } }
 
+/* Version 2.0 : fiabilité en résumé, détail en fin de page */
+.fiab-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.fiab-line .eyebrow { margin-right: 4px; }
+.fiab-line .pill { font-family: var(--font-data); font-size: 0.72rem; padding: 3px 8px; border-radius: 999px; font-weight: 600; }
+.fiab-line .linkbtn { padding: 0; font-size: 0.85rem; }
+.fiab { display: grid; gap: 10px; max-width: 80ch; }
+.signals.compact { gap: 0; }
+.signals.compact .signal { background: none; border-radius: 0; padding: 10px 0; border-top: 1px solid var(--line); font-size: 0.88rem; }
+.stack.fill { grid-template-rows: auto 1fr; }
+.e2-mini { border-left: 4px solid var(--fam, var(--ink)); gap: 10px; }
+.e2-mini h3 { justify-content: flex-start; font-size: 1.35rem; }
+.e2-mini .pscale { max-width: 220px; }
+.mini-lv { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.86rem; color: var(--muted); }
+.mini-lv strong { color: var(--ink); }
+.mini-lv .lim strong { color: var(--warn); }
+
 </style>
 </head>
 <body>
@@ -2194,6 +2210,24 @@ window.RISQUE = (function () {
     if (!loc || !loc.answers || !k) return null;
     try { return MR.encoder(MR.evaluer(loc.answers)) === k.token ? loc.answers : null; } catch (e) { return null; }
   }
+  /* Encadré compact à droite des jauges : invitation à l'étape 2, ou résumé du profil de risque */
+  function riskMini(r, code) {
+    const k = riskToken();
+    if (!k) return `<div class="panel e2-mini">
+        <span class="eyebrow">Étape 2 · facultative · 6 min</span>
+        <h3>Votre profil de risque</h3>
+        <p class="muted small">Votre tempérament dit ce que vous êtes prêt à supporter ; votre situation, votre horizon et vos connaissances, ce que vous pouvez supporter. L'étape 2 croise les deux et ajuste l'allocation de votre profil.</p>
+        <div class="actions"><a class="btn" href="#etape2/${r.token}">Commencer l'étape 2</a></div></div>`;
+    const pr = MR.profil(r.axes.R.score, k), N = RQ.NIVEAUX[pr.final - 1];
+    const lv = (lab, n, key) => `<span class="${pr.limitants.includes(key) ? "lim" : ""}">${lab} <strong>${n}/5</strong></span>`;
+    return `<div class="panel e2-mini" style="--fam:${famColor(code)}">
+        <span class="eyebrow">Étape 2 · profil de risque indicatif</span>
+        <h3>${N.nom} <span class="mono muted">${pr.final}/5</span></h3>
+        ${scale5(pr.final)}
+        <div class="mini-lv">${lv("Tolérance", pr.T, "T")}${lv("Capacité de perte", pr.C, "C")}${lv("Horizon", pr.H, "H")}</div>
+        <p class="muted small">Pire perte de crise tolérée : ${N.court}. Le plafond le plus bas fixe le niveau.</p>
+        <button class="linkbtn" id="to-e2" style="justify-self:start">Voir l'allocation ajustée</button></div>`;
+  }
   function ctaE2(r) {
     return `<section class="panel e2-cta" style="margin-top:32px">
       <div><span class="eyebrow">Étape 2 · facultative · environ 6 minutes</span>
@@ -2224,7 +2258,7 @@ window.RISQUE = (function () {
   }
   function riskSection(r, code) {
     const k = riskToken();
-    if (!k) return ctaE2(r);
+    if (!k) return "";
     const sR = r.axes.R.score, pr = MR.profil(sR, k), N = RQ.NIVEAUX[pr.final - 1];
     const p = P[code], nat = stats(p.alloc), natPire = Math.min(...nat.crises), natN = niveau(natPire).n;
     const adj = MR.ajuster(p.alloc, pr.final, k.masque, k.L, CL), st = stats(adj.alloc), adjPire = Math.min(...st.crises);
@@ -2335,6 +2369,15 @@ window.RISQUE = (function () {
     if (out.length < 2 && r.mode === "f") out.push(`<div class="signal"><span class="pill good">Aligné</span><span>Sur tous les axes, ce que vous déclarez et ce que vous feriez concordent à moins de 20 points près.</span></div>`);
     return out.join("");
   }
+  /* Résumé de fiabilité en une ligne ; le détail est en fin de page */
+  function fiabBref(r) {
+    const pills = [];
+    if (r.coherence !== null) pills.push(`<span class="pill ${r.coherence >= 75 ? "good" : r.coherence >= 60 ? "info" : "warn"}">Cohérence ${r.coherence}</span>`);
+    const ecarts = AXES.filter(a => { const x = r.axes[a.id]; return x && x.decl !== null && x.rev !== null && Math.abs(x.rev - x.decl) > 20; }).length;
+    if (r.mode === "f") pills.push(ecarts ? `<span class="pill warn">${ecarts} écart${ecarts > 1 ? "s" : ""} déclaré / révélé</span>` : `<span class="pill good">Déclaré et révélé alignés</span>`);
+    if (!pills.length) return "";
+    return `<div class="fiab-line"><span class="eyebrow">Fiabilité</span>${pills.join("")}<button class="linkbtn" id="to-fiab">Détail</button></div>`;
+  }
   function renderResult(r, friendToken) {
     const code = S.code(r.axes), suf = S.suffixe(r.axes), p = P[code];
     const friend = friendToken ? S.decode(friendToken) : null;
@@ -2361,12 +2404,15 @@ window.RISQUE = (function () {
             ${r.axes.X ? gauge("X", r.axes.X, friend && friend.axes.X) : ""}
             <div class="legend"><span><i></i>Score révélé</span><span><i class="d"></i>Score déclaré</span>${friend ? `<span><i style="border-color:var(--con)"></i>Comparaison</span>` : ""}</div>
           </div>
+          <div class="stack fill">
           <div class="panel">
-            <h3>Ce que révèlent vos réponses</h3>
-            <div class="signals">${signals(r)}</div>
+            <h3>En bref</h3>
+            ${fiabBref(r)}
             ${vois.length ? `<p class="muted" style="font-size:.92rem">Profil${vois.length > 1 ? "s" : ""} voisin${vois.length > 1 ? "s" : ""}, car un axe est proche de l'équilibre : ${vois.map(v => `<a href="#profil-${v.code}"><strong class="mono">${v.code}</strong> ${P[v.code].nom}</a>`).join(", ")}.</p>` : ""}
             ${suf ? `<div class="callout" style="--fam:${suf === "R" ? "var(--warn)" : "var(--good)"}"><span class="eyebrow">${suf === "R" ? "Suffixe -R · Réactif" : "Suffixe -D · Discipliné"}</span><p>${suf === "R" ? "Vos émotions pèsent sur vos décisions quand le marché bouge vite. Vos règles de discipline et votre garde-fou sont à appliquer en priorité." : "Vous tenez vos règles quand le marché s'agite. C'est un avantage décisif : la plupart des pertes évitables viennent de décisions prises sous le stress."}</p></div>` : `<p class="muted" style="font-size:.92rem">La version courte ne mesure ni la discipline sous stress ni la cohérence. <a href="#test-complet">Passer le test complet</a>.</p>`}
             ${friend ? `<p style="font-size:.92rem"><strong>${common} lettre${common > 1 ? "s" : ""} sur 4 en commun</strong> avec ${fcode} (${P[fcode].nom}).</p>` : ""}
+          </div>
+          ${riskMini(r, code)}
           </div>
         </div>
       </section>
@@ -2374,6 +2420,12 @@ window.RISQUE = (function () {
       ${riskSection(r, code)}
 
       <div style="margin-top:40px">${profileBlocks(code, true)}</div>
+
+      <section class="fiab" id="fiabilite" style="margin-top:56px">
+        <h2>La fiabilité de votre résultat</h2>
+        <p class="muted small">Cohérence entre vos réponses aux questions miroirs, et écarts entre ce que vous déclarez et ce que vous feriez en situation.</p>
+        <div class="signals compact">${signals(r)}</div>
+      </section>
 
       <section style="margin-top:56px">
         <div class="grid2">
@@ -2393,6 +2445,10 @@ window.RISQUE = (function () {
       </section>
       <p class="disclaimer" style="margin-top:40px">Ce test est un outil pédagogique de connaissance de soi et de sensibilisation aux biais comportementaux. Il ne constitue ni un conseil en investissement, ni une recommandation personnalisée, ni une évaluation de l'adéquation au sens de la réglementation (MIF 2). Le test mesure votre tempérament face au risque ; l'étape 2 facultative en donne une lecture indicative croisée avec votre situation, votre horizon et vos connaissances, sans remplacer l'évaluation d'un professionnel. Avant toute décision, consultez un professionnel habilité. Aucune donnée n'est envoyée : vos réponses restent dans votre navigateur. <a href="#avertissement">Avertissement complet</a></p>
     `);
+    const te = document.getElementById("to-e2");
+    if (te) te.addEventListener("click", () => document.querySelector(".e2-res").scrollIntoView({ behavior: "smooth", block: "start" }));
+    const tf = document.getElementById("to-fiab");
+    if (tf) tf.addEventListener("click", () => document.getElementById("fiabilite").scrollIntoView({ behavior: "smooth", block: "start" }));
     const shk = document.getElementById("share-k"), k0 = riskToken();
     if (shk) shk.addEventListener("change", () => { document.getElementById("share-code").value = r.token + (shk.checked ? k0.token : ""); });
     const del = document.getElementById("e2-del");
